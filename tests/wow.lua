@@ -542,12 +542,15 @@ function NewClient(opts)
     function Region:GetSize()
         return self:GetWidth(), self:GetHeight()
     end
+    -- A font string is 6 pixels per character wide.
+    function Region:GetStringWidth()
+        return #(self.text or "") * 6
+    end
     for _, getter in ipairs({
         "GetTop",
         "GetBottom",
         "GetLeft",
         "GetRight",
-        "GetStringWidth",
         "GetStringHeight",
         "GetFrameLevel",
         "GetNumPoints",

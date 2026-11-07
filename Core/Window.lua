@@ -20,8 +20,8 @@ local ROW_HEIGHT, ROW_GAP = 16, 2
 -- From the top edge to the first bar: title, subtitle and the buttons.
 local HEADER = 52
 local NOTE_HEIGHT = 14
--- Four buttons and their gaps fit the window's width.
-local BUTTON_WIDTH, BUTTON_HEIGHT = 58, 14
+-- A button is as wide as its label plus this, so a bigger font never cuts a label off.
+local BUTTON_PAD, BUTTON_HEIGHT = 8, 14
 local BAR_TEXTURE = "Interface\\TargetingFrame\\UI-StatusBar"
 local BACKDROP = { bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 }
 -- A window's place and look in a layout it has not been touched in.
@@ -166,6 +166,7 @@ function Window:ApplyLook(look)
     self:StyleText(self.more, nil, "textColor")
     for _, button in pairs(self.buttons) do
         self:StyleText(button.label)
+        button:SetWidth(button.label:GetStringWidth() + BUTTON_PAD)
     end
     for _, row in ipairs(self.rows) do
         self:StyleText(row.left, nil, "textColor")
@@ -179,11 +180,11 @@ end
 ---@param onClick fun()
 function Window:AddButton(key, label, onClick)
     local button = CreateFrame("Button", nil, self.frame)
-    button:SetSize(BUTTON_WIDTH, BUTTON_HEIGHT)
     local text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     text:SetAllPoints()
     text:SetText(label)
     self:StyleText(text)
+    button:SetSize(text:GetStringWidth() + BUTTON_PAD, BUTTON_HEIGHT)
     button.label = text
     button:SetScript("OnClick", onClick)
     local previous = self.buttons[self.lastButton]

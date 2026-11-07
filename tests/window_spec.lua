@@ -116,6 +116,14 @@ describe("the catch window", function()
         assert.are.equal("and 1 more", window.more.text)
     end)
 
+    it("sizes each view button to its label, so none is cut off", function()
+        local _, window = fishing()
+        local buttons = window.buttons
+        assert.is_true(buttons.char.width > buttons.account.width, "Character is wider than All")
+        assert.are.equal(buttons.char.label:GetStringWidth() + 8, buttons.char.width)
+        assert.are.equal(buttons.account.label:GetStringWidth() + 8, buttons.account.width)
+    end)
+
     it("lets clicks through to the world, except on its buttons", function()
         local _, window = fishing()
         assert.is_false(window.frame.mouse)
