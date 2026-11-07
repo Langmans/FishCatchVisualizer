@@ -20,7 +20,8 @@ local ROW_HEIGHT, ROW_GAP = 16, 2
 -- From the top edge to the first bar: title, subtitle and the buttons.
 local HEADER = 52
 local NOTE_HEIGHT = 14
-local BUTTON_WIDTH, BUTTON_HEIGHT = 74, 14
+-- Four buttons and their gaps fit the window's width.
+local BUTTON_WIDTH, BUTTON_HEIGHT = 58, 14
 local BAR_TEXTURE = "Interface\\TargetingFrame\\UI-StatusBar"
 local BACKDROP = { bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 }
 -- A window's place and look in a layout it has not been touched in.

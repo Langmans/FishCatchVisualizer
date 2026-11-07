@@ -54,7 +54,7 @@ AddCommand("options", "", L.HELP_OPTIONS, function()
 end)
 AddChoice("show", Addon.showModes, { "pole", "always", "never" }, L.HELP_SHOW)
 AddChoice("scope", Addon.scopes, { "area", "zone" }, L.HELP_SCOPE)
-AddChoice("view", Addon.views, { "session", "char", "account" }, L.HELP_VIEW)
+AddChoice("view", Addon.views, Addon.VIEW_ORDER, L.HELP_VIEW)
 -- Left out of the list: the options' other name.
 commands.config = commands.options
 

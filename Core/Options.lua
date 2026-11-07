@@ -224,7 +224,8 @@ function Addon:GetOptionsTable()
                                 type = "select",
                                 name = L.VIEW,
                                 order = 3,
-                                values = Choices("VIEW_MODE", { "session", "char", "account" }),
+                                values = Choices("VIEW_MODE", Addon.VIEW_ORDER),
+                                sorting = Addon.VIEW_ORDER,
                             }),
                             rows = Setting({ type = "range", name = L.ROWS, order = 4, min = 3, max = 20, step = 1 }),
                             editMode = { type = "description", name = L.EDIT_MODE_HINT, order = 5 },
@@ -246,6 +247,33 @@ function Addon:GetOptionsTable()
                                 max = 10,
                                 step = 1,
                             }),
+                        },
+                    },
+                    guild = {
+                        type = "group",
+                        inline = true,
+                        name = L.GUILD,
+                        order = 3.5,
+                        args = {
+                            share = Setting({
+                                type = "toggle",
+                                name = L.SHARE,
+                                desc = L.SHARE_DESC,
+                                order = 1,
+                                width = "double",
+                            }),
+                            forget = {
+                                type = "execute",
+                                name = L.FORGET_GUILD,
+                                order = 2,
+                                confirm = true,
+                                confirmText = L.FORGET_GUILD_CONFIRM,
+                                func = function()
+                                    wipe(Addon.db.global.guild)
+                                    Addon:LogChanged()
+                                    Addon:UpdateCatchWindow()
+                                end,
+                            },
                         },
                     },
                     -- Only in a copy straight from the repository (Core\Dev.lua).

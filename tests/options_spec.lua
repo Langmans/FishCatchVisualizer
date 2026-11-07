@@ -47,6 +47,19 @@ describe("the options", function()
         assert.is_true(client.Addon.catchWindow.frame:IsShown())
         set({ "general", "tooltip", "tooltip" }, false)
         assert.is_false(client.Addon.db.profile.tooltip)
+        assert.is_true(get({ "general", "guild", "share" }))
+        set({ "general", "guild", "share" }, false)
+        assert.is_false(client.Addon.db.profile.share)
+    end)
+
+    it("forget the guild's counts after asking, the account's stay", function()
+        local client = NewClient():login():equip(ITEMS.pole):catch(ITEMS.snapper)
+        client.Addon.db.global.guild["mate"] = { name = "Mate", zones = {}, t = 1 }
+        local forget = options().args.general.args.guild.args.forget
+        assert.is_string(forget.confirmText)
+        forget.func()
+        assert.are.same({}, client.Addon.db.global.guild)
+        assert.is_table(client.Addon.db.global.chars["Fisher - Doomhowl"])
     end)
 
     it("clear the log after asking", function()

@@ -213,8 +213,108 @@ function NewClient(opts)
         ItemClass = { Consumable = 0, Weapon = 2, Tradegoods = 7 },
         ItemWeaponSubclass = { Sword1H = 7, Fishingpole = 20 },
         TooltipDataType = { Item = 0, Spell = 1 },
+        SendAddonMessageResult = { Success = 0, AddonMessageThrottle = 3, NotInGuild = 10, AddOnMessageLockdown = 11 },
     }
     INVSLOT_MAINHAND = 16
+
+    -- Addon messages. client.addonSent: every one sent, { prefix, text, channel }; client.inGuild:
+    -- whether the player is in a guild. ChatThrottleLib (AceComm) also hooks the chat send.
+    client.addonSent, client.inGuild = {}, false
+    function IsInGuild()
+        return client.inGuild
+    end
+    function Ambiguate(name)
+        return name
+    end
+    function GetFramerate()
+        return 60
+    end
+    C_ChatInfo = {
+        RegisterAddonMessagePrefix = function()
+            return true
+        end,
+        SendAddonMessage = function(prefix, text, channel)
+            client.addonSent[#client.addonSent + 1] = { prefix, text, channel }
+            return Enum.SendAddonMessageResult.Success
+        end,
+        SendAddonMessageLogged = function()
+            return Enum.SendAddonMessageResult.Success
+        end,
+        SendChatMessage = noop,
+    }
+
+    -- The client's encoding: Base64 as the game does it; CBOR and Deflate stand-ins that only this
+    -- client reads back (as BattleCry's tests have them). Serialize keeps a copy under a token,
+    -- Compress marks its input, and each reader raises on what it did not make, as the game's do.
+    local B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    local serialized = {}
+    local function deepCopy(value)
+        if type(value) ~= "table" then return value end
+        local copy = {}
+        for k, v in pairs(value) do
+            copy[k] = deepCopy(v)
+        end
+        return copy
+    end
+    C_EncodingUtil = {
+        EncodeBase64 = function(source)
+            return (
+                (source:gsub(".", function(char)
+                    local byte, bits = char:byte(), ""
+                    for i = 8, 1, -1 do
+                        bits = bits .. (byte % 2 ^ i - byte % 2 ^ (i - 1) > 0 and "1" or "0")
+                    end
+                    return bits
+                end) .. "0000"):gsub("%d%d%d?%d?%d?%d?", function(bits)
+                    if #bits < 6 then return "" end
+                    local n = 0
+                    for i = 1, 6 do
+                        n = n + (bits:sub(i, i) == "1" and 2 ^ (6 - i) or 0)
+                    end
+                    return B64:sub(n + 1, n + 1)
+                end) .. ({ "", "==", "=" })[#source % 3 + 1]
+            )
+        end,
+        DecodeBase64 = function(source)
+            if source:find("[^%w%+/=]") then error("not Base64") end
+            source = source:gsub("=", "")
+            return (
+                source
+                    :gsub(".", function(char)
+                        local n, bits = B64:find(char, 1, true) - 1, ""
+                        for i = 6, 1, -1 do
+                            bits = bits .. (n % 2 ^ i - n % 2 ^ (i - 1) > 0 and "1" or "0")
+                        end
+                        return bits
+                    end)
+                    :gsub("%d%d%d?%d?%d?%d?%d?%d?", function(bits)
+                        if #bits ~= 8 then return "" end
+                        local n = 0
+                        for i = 1, 8 do
+                            n = n + (bits:sub(i, i) == "1" and 2 ^ (8 - i) or 0)
+                        end
+                        return string.char(n)
+                    end)
+            )
+        end,
+        CompressString = function(source)
+            return "deflated:" .. source
+        end,
+        DecompressString = function(source)
+            local plain = source:match("^deflated:(.*)$")
+            if not plain then error("not deflated") end
+            return plain
+        end,
+        SerializeCBOR = function(value)
+            serialized[#serialized + 1] = deepCopy(value)
+            return "cbor:" .. #serialized
+        end,
+        DeserializeCBOR = function(source)
+            local index = tonumber(source:match("^cbor:(%d+)$"))
+            if not index then error("not CBOR") end
+            return deepCopy(serialized[index])
+        end,
+    }
 
     -- Places. client.mapID and client.subzone say where the player stands; the zone's name comes
     -- from the map. client.areaLookups counts C_Map.GetAreaInfo calls.
@@ -871,6 +971,26 @@ function NewClient(opts)
     ---of its commands (the alias), the addon's own name by default.
     function client:slash(message, command)
         SlashCmdList["ACECONSOLE_" .. (command or addonName):upper()](message)
+        return self
+    end
+
+    ---The texts of the addon messages sent so far with the addon's prefix, to the guild.
+    ---@return string[]
+    function client:guildSent()
+        local out = {}
+        for _, sent in ipairs(self.addonSent) do
+            if sent[1] == self.Addon.COMM_PREFIX and sent[3] == "GUILD" then out[#out + 1] = sent[2] end
+        end
+        return out
+    end
+
+    ---A guildmate's addon message arrives, whole, as AceComm hands it over (`channel` GUILD by
+    ---default).
+    ---@param text string
+    ---@param sender string
+    ---@param channel string?
+    function client:receive(text, sender, channel)
+        self.Addon:OnCommReceived(self.Addon.COMM_PREFIX, text, channel or "GUILD", sender)
         return self
     end
 

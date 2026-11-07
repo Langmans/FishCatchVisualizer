@@ -16,8 +16,8 @@ function Addon:HasFishingPole()
 end
 
 ---On login and on every change of the main hand: a pole coming in starts or continues the
----session, one going away ends it; then the window is shown or hidden and the broker shows the
----session's catches.
+---session, one going away ends it and sends the counts to the guild; then the window is shown or
+---hidden and the broker shows the session's catches.
 ---@param event string
 ---@param slot number? PLAYER_EQUIPMENT_CHANGED's slot
 function Addon:UpdateFishing(event, slot)
@@ -27,8 +27,9 @@ function Addon:UpdateFishing(event, slot)
         self.fishing = fishing
         if fishing then
             self:StartSession()
-        else
+        elseif self.session then
             self:EndSession()
+            self:SendSnapshot()
         end
     end
     self:UpdateCatchWindow()

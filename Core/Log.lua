@@ -121,6 +121,11 @@ function Addon:ClearLog()
     self:ClearRecords()
 end
 
+---Something else changed the counts (a guildmate's arrived): the item places are built again.
+function Addon:LogChanged()
+    wipe(placesCache)
+end
+
 -- PlaceCounts' working tables, reused on every call: item ID -> count, the row tables, and the
 -- rows handed out.
 ---@type table<number, number>
@@ -176,6 +181,11 @@ function Addon:PlaceCounts(view, mapID, area)
         for _, char in pairs(global.chars) do
             AddPlace(char.zones, mapID, area)
         end
+        if view == self.views.guild then
+            for _, mate in pairs(global.guild) do
+                AddPlace(mate.zones, mapID, area)
+            end
+        end
     end
     wipe(rows)
     local n, total = 0, 0
@@ -203,8 +213,29 @@ local function ByShare(a, b)
     return tostring(a.area) < tostring(b.area)
 end
 
----Every place any character caught the item, with its count and the place's total, best share
----first; nil when it was never caught. Built once per item until the log changes.
+---Adds one source's counts (a character's or a guildmate's) to the places of an item.
+---@param byPlace table<string, AddonItemPlace>
+---@param zones AddonZones
+---@param itemID number
+local function AddItemPlaces(byPlace, zones, itemID)
+    for mapID, zone in pairs(zones) do
+        for area, counts in pairs(zone) do
+            local key = mapID .. ":" .. tostring(area)
+            local place = byPlace[key]
+            if not place then
+                place = { mapID = mapID, area = area, count = 0, total = 0 }
+                byPlace[key] = place
+            end
+            place.count = place.count + (counts[itemID] or 0)
+            for _, count in pairs(counts) do
+                place.total = place.total + count
+            end
+        end
+    end
+end
+
+---Every place any character or guildmate caught the item, with its count and the place's total,
+---best share first; nil when it was never caught. Built once per item until the log changes.
 ---@param itemID number
 ---@return AddonItemPlace[]?
 function Addon:ItemPlaces(itemID)
@@ -214,21 +245,12 @@ function Addon:ItemPlaces(itemID)
     local byPlace = {}
     ---@type AddonItemPlace[]
     local places = {}
-    for _, char in pairs(self.db.global.chars) do
-        for mapID, zone in pairs(char.zones) do
-            for area, counts in pairs(zone) do
-                local key = mapID .. ":" .. tostring(area)
-                local place = byPlace[key]
-                if not place then
-                    place = { mapID = mapID, area = area, count = 0, total = 0 }
-                    byPlace[key] = place
-                end
-                place.count = place.count + (counts[itemID] or 0)
-                for _, count in pairs(counts) do
-                    place.total = place.total + count
-                end
-            end
-        end
+    local global = self.db.global
+    for _, char in pairs(global.chars) do
+        AddItemPlaces(byPlace, char.zones, itemID)
+    end
+    for _, mate in pairs(global.guild) do
+        AddItemPlaces(byPlace, mate.zones, itemID)
     end
     for _, place in pairs(byPlace) do
         if place.count > 0 then places[#places + 1] = place end

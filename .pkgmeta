@@ -25,6 +25,10 @@ externals:
     url: https://github.com/WoWUIDev/Ace3.git
     commit: 40f4cc1356ae7fcc0cf71fc0a19dc7d50d6ae6c2
     path: AceConsole-3.0
+  Libs/AceComm-3.0:
+    url: https://github.com/WoWUIDev/Ace3.git
+    commit: 40f4cc1356ae7fcc0cf71fc0a19dc7d50d6ae6c2
+    path: AceComm-3.0
   Libs/AceDB-3.0:
     url: https://github.com/WoWUIDev/Ace3.git
     commit: 40f4cc1356ae7fcc0cf71fc0a19dc7d50d6ae6c2

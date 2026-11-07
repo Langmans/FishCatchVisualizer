@@ -5,7 +5,7 @@
 ---The addon object, which is also the namespace the client hands every file; other addons reach
 ---it through AceAddon. What one file defines and another uses is listed here, so every file
 ---knows it.
----@class Addon: AceAddon, AceConsole-3.0, AceEvent-3.0
+---@class Addon: AceAddon, AceConsole-3.0, AceEvent-3.0, AceComm-3.0
 ---@field NAME string the folder's name; every name the game sees starts from it
 ---@field SLASH_ALIAS string the slash command's short name
 ---@field Global fun(suffix: string): string a global name of the addon's own, NAME first
@@ -30,6 +30,14 @@
 ---@field RarestAt fun(self: Addon, mapID: number, area: AddonArea?): (number?, number?)
 ---@field ClearRecords fun(self: Addon)
 ---@field UpdateBroker fun(self: Addon)
+---@field VIEW_ORDER string[] the views in the order the buttons and lists show them
+---@field COMM_PREFIX string AceComm's prefix
+---@field ShareId fun(self: Addon): string
+---@field EncodeSnapshot fun(id: string, zones: AddonZones): string
+---@field DecodeSnapshot fun(text: string): (string?, AddonZones?)
+---@field SendSnapshot fun(self: Addon)
+---@field SetupShare fun(self: Addon)
+---@field LogChanged fun(self: Addon)
 ---@field LatestSession fun(self: Addon): AddonSession?
 ---@field ClearTimes fun(self: Addon)
 ---@field TimeNotes fun(self: Addon, itemID: number): (string?, string?)
@@ -105,6 +113,7 @@
 ---@field rows number bars at most
 ---@field tooltip boolean whether item tooltips list the places
 ---@field tooltipPlaces number places listed at most
+---@field share boolean swap counts with guildmates
 ---@field font? string a LibSharedMedia font name; none: its default
 ---@field fontSize number
 ---@field outline string an Addon.outlines key
@@ -142,6 +151,14 @@
 ---@field dev? AddonDevData Core\Dev.lua's, in a copy from the repository
 ---@field times table<number, AddonTimes> per item ID (0: every catch), by time of day and season
 ---@field records AddonRecords
+---@field guild table<string, AddonGuildmate> guildmates' accounts' counts, by account ID
+---@field shareId? string this account's ID in the guild
+
+---A guildmate's account's counts, as the last snapshot brought them (Core\Share.lua).
+---@class AddonGuildmate
+---@field name string the character that sent them
+---@field zones AddonZones
+---@field t number server time
 
 ---The records, account-wide (Core\Records.lua).
 ---@class AddonRecords

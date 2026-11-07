@@ -5,7 +5,7 @@ local addonName, ns = ...
 -- game and other addons see is made from the folder's name, NAME (README > Renaming).
 
 ---@type Addon
-local Addon = LibStub("AceAddon-3.0"):NewAddon(ns, addonName, "AceConsole-3.0", "AceEvent-3.0")
+local Addon = LibStub("AceAddon-3.0"):NewAddon(ns, addonName, "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0")
 Addon.L = LibStub("AceLocale-3.0"):GetLocale(addonName)
 
 -- The folder's name; the slash command is NAME in lower case, plus SLASH_ALIAS.
@@ -34,8 +34,11 @@ end
 Addon.showModes = SelfKeyed({ "pole", "always", "never" })
 -- What the window covers: the subzone the player stands in, or the whole zone.
 Addon.scopes = SelfKeyed({ "area", "zone" })
--- Whose catches the window counts: this fishing session's, this character's, every character's.
-Addon.views = SelfKeyed({ "session", "char", "account" })
+-- Whose catches the window counts: this fishing session's, this character's, every character's,
+-- and the guildmates' too.
+Addon.views = SelfKeyed({ "session", "char", "account", "guild" })
+-- The views in the order the buttons and lists show them.
+Addon.VIEW_ORDER = { "session", "char", "account", "guild" }
 -- Public messages (AceEvent SendMessage), "<NAME>_CATCH" and so on. catch: itemID, quantity, mapID,
 -- area key. newHere (an item's first catch at a place, over the account): itemID, mapID, area key.
 Addon.messages = { catch = addonName:upper() .. "_CATCH", newHere = addonName:upper() .. "_NEW_HERE" }
@@ -50,6 +53,8 @@ local DEFAULTS = {
         rows = 8,
         tooltip = true,
         tooltipPlaces = 5,
+        -- Swap counts with guildmates who have the addon (Core\Share.lua).
+        share = true,
         -- The windows' text (Core\Text.lua). font has no default: LibSharedMedia's default then.
         fontSize = 12,
         outline = "none",
@@ -64,7 +69,7 @@ local DEFAULTS = {
         -- Per Edit Mode layout, per window: where it sits and its look (Core\Window.lua).
         layouts = {},
     },
-    global = { chars = {}, sessions = {}, items = {}, times = {}, records = { stacks = {} } },
+    global = { chars = {}, sessions = {}, items = {}, times = {}, records = { stacks = {} }, guild = {} },
 }
 Addon.DEFAULTS = DEFAULTS
 
@@ -90,6 +95,7 @@ function Addon:OnInitialize()
     self:SetupTooltip()
     self:SetupEditMode()
     self:SetupText()
+    self:SetupShare()
 end
 
 function Addon:OnEnable()

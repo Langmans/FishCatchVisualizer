@@ -13,7 +13,7 @@ local UNKNOWN_ICON = 134400
 local window = Addon.NewBarWindow("catches", L.WINDOW_CATCHES, { 0.18, 0.44, 0.56 })
 Addon.catchWindow = window
 
-for _, view in ipairs({ Addon.views.session, Addon.views.char, Addon.views.account }) do
+for _, view in ipairs(Addon.VIEW_ORDER) do
     window:AddButton(view, L["BUTTON_" .. view:upper()], function()
         Addon:SetView(view)
     end)
