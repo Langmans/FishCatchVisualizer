@@ -4,10 +4,21 @@ A WoW: Forever addon that logs every fish you catch in the **subzone** you caugh
 character and per fishing session.
 
 - **Catch window.** With a fishing pole in hand, a small see-through window shows what you
-  caught where you stand: one bar per item, with how many and their share. Buttons pick whose
-  catches it counts: this **session**, this **character**, or **all** your characters.
+  caught where you stand: one bar per item, with how many and their share, and how many kinds
+  ("3/5 kinds": in this view, out of every kind your account caught here). Buttons pick whose
+  catches it counts: this **session**, this **character**, **all** your characters, or all of
+  them plus your **guild**.
+- **New here!** The first catch of an item at a place, over your whole account, says so in chat
+  and is marked "new" in the window until you leave.
 - **Item tooltip.** An item you caught shows where: "Crystal Lake, Elwynn Forest 45% (21)"
-  means 45% of what was caught there was this item, 21 of them. Best spots first.
+  means 45% of what was caught there was this item, 21 of them. Best spots first. Then its
+  biggest stack, and when it seems to bite: "Only at night", "Only in winter and spring".
+- **Records.** Biggest stack per item, most catches in a session, longest session; beating one
+  says so in chat.
+- **Data broker.** "12 caught" this session in Titan Panel, ChocolateBar, ElvUI's datatexts; its
+  tooltip has the session, the rarest catch where you stand and the records.
+- **Guild.** Guildmates with the addon swap their counts (numbers only), so the Guild view and
+  the tooltips show where they caught what too. Can be switched off.
 - **Subzone or whole zone.** The window covers the subzone you stand in, or the whole zone.
 
 Move the window, and set its size and opacity, in the game's **Edit Mode** (Esc > Edit Mode).
@@ -27,10 +38,10 @@ dialog.
 | `/fcv options` (or `config`) | opens the options in their own window |
 | `/fcv show pole\|always\|never` | when the catch window shows |
 | `/fcv scope area\|zone` | the subzone you stand in, or the whole zone |
-| `/fcv view session\|char\|account` | whose catches the window counts |
+| `/fcv view session\|char\|account\|guild` | whose catches the window counts |
 
-The same settings, plus the item tooltip and clearing the log, are in Esc > Options > AddOns >
-FishCatchVisualizer.
+The same settings, plus the item tooltip, the guild and clearing the log, are in Esc > Options >
+AddOns > FishCatchVisualizer.
 
 ## How it works
 
@@ -38,8 +49,33 @@ FishCatchVisualizer.
 
 `LOOT_OPENED` with `IsFishingLoot()` true: every item slot of that loot window is one catch of
 its stack size, logged where the player stands. Money and anything the client hides (secret
-values) are skipped. Each catch also goes out as the AceEvent message
-`FISHCATCHVISUALIZER_CATCH` (itemID, quantity, mapID, area) for other addons.
+values) are skipped. `OnLootOpened` handles each item in a fixed order: whether it is new at the
+place, the log, the time of day and season, the records, "New here", the data broker, then the
+AceEvent message `FISHCATCHVISUALIZER_CATCH` (itemID, quantity, mapID, area), which also refreshes
+the window. `FISHCATCHVISUALIZER_NEW_HERE` (itemID, mapID, area) goes out on an item's first catch
+at a place.
+
+### Day and night, seasons
+
+`Core\Times.lua`: each catch is counted in `global.times[itemID]` and `global.times[0]` (all
+catches) by `day`/`night` (server time from `GetGameTime`, day from 6 to 18) and by season
+(`C_DateAndTime.GetCurrentCalendarTime().month`, northern: winter is December to February). The
+tooltip says "Only at night" or "Only in winter and spring" once the item was caught at least 5
+times and the other time or season was fished at least 20 times without it.
+
+### Records
+
+`Core\Records.lua`: `global.records.stacks[itemID] = { n, mapID, area, t }`, and
+`sessionCatches`/`sessionLength` `{ n, session }` (the session's start, so beating a record set by
+another session says so, once per session). A first value is kept quietly.
+
+### Guild
+
+`Core\Share.lua`: AceComm prefix NAME cut to 16 characters, channel GUILD. "H" is a hello (sent
+10 s after login); "S" .. Base64(Deflate(CBOR({ id, zones }))) a snapshot of the account's counts,
+answered 3 to 15 s after a hello and sent when the pole goes away, at most once every 5 minutes.
+`global.shareId` is the account's ID; a snapshot is kept in `global.guild[id] = { name, zones, t }`
+after only numeric counts are taken from it. The Guild view and the item tooltips add it.
 
 ### Places
 
@@ -66,6 +102,11 @@ an ID keeps its text as key; no subzone at all is area `0`, the zone itself.
 | `Core\Addon.lua` | the addon object, enums, saved-data defaults, event registration |
 | `Core\Place.lua` | map and area key of where the player stands, place names |
 | `Core\Log.lua` | recording catches, sessions, counts at a place, an item's places |
+| `Core\Times.lua` | day and night, seasons, the tooltip's time notes |
+| `Core\NewHere.lua` | "New here!" and its marks |
+| `Core\Records.lua` | stack and session records, the rarest catch at a place |
+| `Core\Broker.lua` | the data broker object (LibDataBroker-1.1) |
+| `Core\Share.lua` | swapping counts with the guild (AceComm) |
 | `Core\Detect.lua` | the fishing pole and fishing loot |
 | `Core\Text.lua` | the windows' font, outline, Slug and shadow (LibSharedMedia) |
 | `Core\Window.lua` | the bar list window and its Edit Mode hookup (LibEditMode) |
@@ -79,7 +120,8 @@ an ID keeps its text as key; no subzone at all is area `0`, the zone itself.
 have a Development box with "Dev screenshots", off until switched on. On, the first time each
 kind of moment from the in-game checks happens (the window per view, in Edit Mode, for the whole
 zone, without a subzone, with nothing caught or with more rows; a fishing loot window with and
-without autoloot; an item tooltip with places, per tooltip; the options window), a grey
+without autoloot; an item tooltip with places, per tooltip; the options window; the first "New
+here"), a grey
 `[<NAME> dev] ...` chat line says which, then one screenshot goes to the game's `Screenshots`
 folder, at most one every two seconds. What has a screenshot is kept in the saved data; "Forget
 the screenshots taken" starts over. It hooks the addon's own methods and listens to LOOT_OPENED
@@ -100,8 +142,9 @@ By hand: the folder and the repository, the `.toc`'s file name, `## Title` and
 A player's saved data stays under the old `<NAME>DB`: copy `WTF\Account\<account>\SavedVariables\<Old>.lua`
 to `<New>.lua` and rename the table inside.
 
-Libraries come from the `.pkgmeta` externals: Ace3 (pinned commit, as in BattleCry),
-LibEditMode (tag 19, the first with interface 16001) and LibSharedMedia-3.0 (svn tag v12.1.3).
+Libraries come from the `.pkgmeta` externals: Ace3 with AceComm (pinned commit, as in
+BattleCry), LibEditMode (tag 19, the first with interface 16001), LibSharedMedia-3.0 (svn tag
+v12.1.3) and LibDataBroker-1.1 (pinned commit, as in BattleCry).
 
 ### Text
 
