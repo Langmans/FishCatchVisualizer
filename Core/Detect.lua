@@ -36,18 +36,33 @@ function Addon:UpdateFishing(event, slot)
     self:UpdateBroker()
 end
 
----LOOT_OPENED: every item of a fishing loot window is logged where the player stands, with its
----time of day and season, whether it is new there and the records it beats, before other addons
----and the window hear of it. Money and anything the client hides are skipped.
-function Addon:OnLootOpened()
+-- The slots of the loot window counted so far. A fast-loot addon loots on LOOT_READY and may close
+-- the window before LOOT_OPENED, and LOOT_READY can come twice with slots the first lacked, so
+-- both events are read and each slot counts once. LOOT_CLOSED starts over; so does a quiet second,
+-- for a window that never sent its close.
+---@type table<number, true>
+local counted = {}
+---@type number?
+local countedAt
+local WINDOW = 1
+
+---LOOT_READY and LOOT_OPENED: every item of a fishing loot window not counted yet is logged where
+---the player stands, with its time of day and season, whether it is new there and the records it
+---beats, before other addons and the window hear of it. Money and anything the client hides are
+---skipped.
+function Addon:OnLoot()
     if not IsFishingLoot() then return end
     local mapID, area = Addon.CurrentPlace()
     if not mapID or not area then return end
+    local now = GetTime()
+    if countedAt and now - countedAt > WINDOW then wipe(counted) end
+    countedAt = now
     for slot = 1, GetNumLootItems() do
-        if GetLootSlotType(slot) == Enum.LootSlotType.Item then
+        if not counted[slot] and GetLootSlotType(slot) == Enum.LootSlotType.Item then
             local link = GetLootSlotLink(slot)
             local itemID = Addon.Readable(link) and C_Item.GetItemInfoInstant(link)
             if itemID then
+                counted[slot] = true
                 local _, name, quantity = GetLootSlotInfo(slot)
                 quantity = Addon.Readable(quantity) and quantity or 1
                 local isNew = not self:EverCaughtHere(mapID, area, itemID)
@@ -60,4 +75,10 @@ function Addon:OnLootOpened()
             end
         end
     end
+end
+
+---LOOT_CLOSED: the next loot window is counted from scratch.
+function Addon:OnLootClosed()
+    wipe(counted)
+    countedAt = nil
 end

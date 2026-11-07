@@ -72,7 +72,8 @@
 ---@field HasFishingPole fun(self: Addon): boolean
 ---@field UpdateCatchWindow fun(self: Addon)
 ---@field UpdateFishing fun(self: Addon, event: string, slot: number?)
----@field OnLootOpened fun(self: Addon)
+---@field OnLoot fun(self: Addon)
+---@field OnLootClosed fun(self: Addon)
 ---@field StartSession fun(self: Addon): AddonSession
 ---@field EndSession fun(self: Addon)
 ---@field RecordCatch fun(self: Addon, mapID: number, area: AddonArea, itemID: number, name: string?, quantity: number)

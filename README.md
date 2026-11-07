@@ -47,9 +47,12 @@ AddOns > FishCatchVisualizer.
 
 ### What counts as a catch
 
-`LOOT_OPENED` with `IsFishingLoot()` true: every item slot of that loot window is one catch of
-its stack size, logged where the player stands. Money and anything the client hides (secret
-values) are skipped. `OnLootOpened` handles each item in a fixed order: whether it is new at the
+`LOOT_READY` or `LOOT_OPENED` with `IsFishingLoot()` true: every item slot of that loot window is
+one catch of its stack size, logged where the player stands. Both events are read because
+fast-loot addons (GogoLoot, ElvUI plugins, TweaksForever) loot on `LOOT_READY` and may close the
+window before `LOOT_OPENED`, and `LOOT_READY` can come twice with slots the first lacked; each slot
+counts once per window (`LOOT_CLOSED`, or a quiet second, starts over). Money and anything the
+client hides (secret values) are skipped. `OnLoot` handles each item in a fixed order: whether it is new at the
 place, the log, the time of day and season, the records, "New here", the data broker, then the
 AceEvent message `FISHCATCHVISUALIZER_CATCH` (itemID, quantity, mapID, area), which also refreshes
 the window. `FISHCATCHVISUALIZER_NEW_HERE` (itemID, mapID, area) goes out on an item's first catch

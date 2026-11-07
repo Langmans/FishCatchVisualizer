@@ -99,7 +99,9 @@ function Addon:OnInitialize()
 end
 
 function Addon:OnEnable()
-    self:RegisterEvent("LOOT_OPENED", "OnLootOpened")
+    self:RegisterEvent("LOOT_READY", "OnLoot")
+    self:RegisterEvent("LOOT_OPENED", "OnLoot")
+    self:RegisterEvent("LOOT_CLOSED", "OnLootClosed")
     self:RegisterEvent("PLAYER_ENTERING_WORLD", "UpdateFishing")
     self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED", "UpdateFishing")
     self:RegisterEvent("ZONE_CHANGED", "UpdateCatchWindow")

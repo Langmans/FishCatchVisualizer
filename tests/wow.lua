@@ -918,11 +918,11 @@ function NewClient(opts)
         return self:fire(newArea and "ZONE_CHANGED_NEW_AREA" or "ZONE_CHANGED")
     end
 
-    ---A loot window opens: fishing loot unless `notFishing`. Each slot is an item ID (one of it),
-    ---{ itemID, quantity }, or "money". Then the window closes.
+    ---Puts slots in the loot window: fishing loot unless `notFishing`. Each slot is an item ID (one
+    ---of it), { itemID, quantity }, or "money".
     ---@param slots (number|table|string)[]
     ---@param notFishing boolean?
-    function client:loots(slots, notFishing)
+    function client:setLoot(slots, notFishing)
         self.fishingLoot = not notFishing
         self.loot = {}
         for i, slot in ipairs(slots) do
@@ -943,9 +943,25 @@ function NewClient(opts)
                 }
             end
         end
-        self:fire("LOOT_OPENED", false, false)
+        return self
+    end
+
+    ---The loot window closes: its slots go.
+    function client:closeLoot()
         self.fishingLoot, self.loot = false, {}
         return self:fire("LOOT_CLOSED")
+    end
+
+    ---A loot window, as the client sends it: LOOT_READY, then LOOT_OPENED, then the window closes.
+    ---`readyOnly`: a fast-loot addon closes it before LOOT_OPENED.
+    ---@param slots (number|table|string)[]
+    ---@param notFishing boolean?
+    ---@param readyOnly boolean?
+    function client:loots(slots, notFishing, readyOnly)
+        self:setLoot(slots, notFishing)
+        self:fire("LOOT_READY", false)
+        if not readyOnly then self:fire("LOOT_OPENED", false, false) end
+        return self:closeLoot()
     end
 
     ---Fishes up each item in turn, one loot window each.
