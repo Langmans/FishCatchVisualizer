@@ -87,7 +87,7 @@ describe("the windows' text", function()
         assert.truthy(row("Sickly Looking Fish"):find("|cff9d9d9dSickly Looking Fish|r", 1, true))
         assert.truthy(row("Raw Longjaw Mud Snapper"):find("|cffffffffRaw Longjaw Mud Snapper|r", 1, true))
         setOption("qualityColors", false)
-        assert.is_nil(row("Sickly Looking Fish"):find("|c", 1, true))
+        assert.is_nil(row("Sickly Looking Fish"):find("|cff9d9d9d", 1, true))
     end)
 
     it("takes an outline and Slug together, and goes without shadow", function()

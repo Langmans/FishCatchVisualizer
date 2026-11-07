@@ -21,6 +21,10 @@
 ---@field SEASON_ORDER string[]
 ---@field SeasonOf fun(month: number): string
 ---@field NoteTime fun(self: Addon, itemID: number, quantity: number)
+---@field EverCaughtHere fun(self: Addon, mapID: number, area: AddonArea, itemID: number): boolean
+---@field NoteNewHere fun(self: Addon, itemID: number, mapID: number, area: AddonArea)
+---@field KeepNewHere fun(self: Addon)
+---@field IsNewHere fun(self: Addon, itemID: number): boolean
 ---@field ClearTimes fun(self: Addon)
 ---@field TimeNotes fun(self: Addon, itemID: number): (string?, string?)
 ---@field windows AddonWindow[] every bar window, in the order made
@@ -42,7 +46,7 @@
 ---@field showModes table<string, string> when the catch window shows: showModes.pole is "pole"
 ---@field scopes table<string, string> the subzone or the whole zone: scopes.zone is "zone"
 ---@field views table<string, string> whose catches: views.session is "session"
----@field messages { catch: string } public AceEvent messages
+---@field messages { catch: string, newHere: string } public AceEvent messages
 ---@field session? AddonSession the session going on, while a pole is in hand
 ---@field fishing? boolean whether a pole was in hand at the last check
 ---@field editing? boolean whether Blizzard's Edit Mode is open

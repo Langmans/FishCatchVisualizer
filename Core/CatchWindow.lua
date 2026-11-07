@@ -19,11 +19,15 @@ for _, view in ipairs({ Addon.views.session, Addon.views.char, Addon.views.accou
     end)
 end
 
+-- The "new" mark after an item first caught at the place: green.
+local NEW_MARK = " |cff33ff33" .. L.NEW .. "|r"
+
 ---An item's icon and name: the client's name, or the one saved when it was caught; in its quality's
----colour when the profile asks for it and the client knows the quality.
+---colour when the profile asks for it and the client knows the quality; marked when new here.
 ---@param itemID number
+---@param isNew boolean
 ---@return string
-local function ItemLabel(itemID)
+local function ItemLabel(itemID, isNew)
     local name = C_Item.GetItemNameByID(itemID) or Addon.db.global.items[itemID] or ("item:" .. itemID)
     if Addon.db.profile.qualityColors then
         local quality = C_Item.GetItemQualityByID(itemID)
@@ -31,7 +35,7 @@ local function ItemLabel(itemID)
         local color = quality and ITEM_QUALITY_COLORS[quality]
         if color then name = color.hex .. name .. "|r" end
     end
-    return ("|T%s:14:14|t %s"):format(C_Item.GetItemIconByID(itemID) or UNKNOWN_ICON, name)
+    return ("|T%s:14:14|t %s%s"):format(C_Item.GetItemIconByID(itemID) or UNKNOWN_ICON, name, isNew and NEW_MARK or "")
 end
 
 ---Whose catches the window counts.
@@ -45,6 +49,8 @@ end
 ---stands.
 function Addon:UpdateCatchWindow()
     local profile = self.db.profile
+    -- Every update follows the player, shown or not: a "new" mark ends when they leave the place.
+    self:KeepNewHere()
     local shown = self.editing
         or profile.show == self.showModes.always
         or (profile.show == self.showModes.pole and self:HasFishingPole())
@@ -59,8 +65,11 @@ function Addon:UpdateCatchWindow()
         return
     end
     if profile.scope == self.scopes.zone then area = nil end
+    -- Every kind the account caught here, counted first: PlaceCounts reuses its rows.
+    local _, known = self:PlaceCounts(self.views.account, mapID, area)
     local rows, n, total = self:PlaceCounts(profile.view, mapID, area)
     local caught = L.CAUGHT:format(total)
+    if known > 0 then caught = L.SUBTITLE:format(caught, L.KINDS:format(n, known)) end
     if area == nil or area == 0 then
         window:SetTitle(Addon.ZoneName(mapID), caught)
     else
@@ -70,7 +79,8 @@ function Addon:UpdateCatchWindow()
     for i = 1, count do
         local row = rows[i]
         local share = row.count / total
-        window:FillRow(i, ItemLabel(row.itemID), L.ROW_COUNT:format(row.count, Addon.Percent(share)), share)
+        local label = ItemLabel(row.itemID, self:IsNewHere(row.itemID))
+        window:FillRow(i, label, L.ROW_COUNT:format(row.count, Addon.Percent(share)), share)
     end
     window:ShowRows(count, n == 0 and L.NOTHING_HERE or nil, n > count and L.MORE:format(n - count) or nil)
 end

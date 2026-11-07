@@ -62,7 +62,12 @@ describe("development screenshots", function()
             client:fire("LOOT_OPENED", true, false)
         end)
         step(function()
-            client:catch(ITEMS.smallfish, ITEMS.sickly)
+            client:catch(ITEMS.smallfish)
+        end)
+        step(function()
+            client:catch(ITEMS.sickly)
+        end)
+        step(function()
             client.Addon.db.profile.rows = 3
             client:slash("view account")
         end)
@@ -98,6 +103,7 @@ describe("development screenshots", function()
             "window: in Edit Mode",
             "tooltip: GameTooltip",
             "options window",
+            "new here",
         }) do
             assert.is_true(shots[kind], kind)
         end

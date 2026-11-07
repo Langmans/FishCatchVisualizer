@@ -36,8 +36,9 @@ Addon.showModes = SelfKeyed({ "pole", "always", "never" })
 Addon.scopes = SelfKeyed({ "area", "zone" })
 -- Whose catches the window counts: this fishing session's, this character's, every character's.
 Addon.views = SelfKeyed({ "session", "char", "account" })
--- Public messages (AceEvent SendMessage), "<NAME>_CATCH". catch: itemID, quantity, mapID, area key.
-Addon.messages = { catch = addonName:upper() .. "_CATCH" }
+-- Public messages (AceEvent SendMessage), "<NAME>_CATCH" and so on. catch: itemID, quantity, mapID,
+-- area key. newHere (an item's first catch at a place, over the account): itemID, mapID, area key.
+Addon.messages = { catch = addonName:upper() .. "_CATCH", newHere = addonName:upper() .. "_NEW_HERE" }
 
 -- The saved data: the settings per profile, the catches account-wide (see annotations\Addon.lua
 -- for the shapes).

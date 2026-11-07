@@ -89,6 +89,11 @@ hooksecurefunc(Addon, "AddItemPlaces", function(self, tooltip, data)
     Flush()
 end)
 
+hooksecurefunc(Addon, "NoteNewHere", function()
+    Notice("new here")
+    Flush()
+end)
+
 hooksecurefunc(Addon, "OpenOptions", function()
     if not LibStub("AceConfigDialog-3.0").OpenFrames[Addon.NAME] then return end
     Notice("options window")

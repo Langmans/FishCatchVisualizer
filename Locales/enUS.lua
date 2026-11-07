@@ -19,6 +19,12 @@ L.CAUGHT = "%d caught"
 L.SUBTITLE = "%s · %s"
 -- The catch window's title where the client cannot tell the map.
 L.UNKNOWN_PLACE = "Somewhere unknown"
+-- The catch window's subtitle, after L.CAUGHT: kinds in the view, out of every kind caught here.
+L.KINDS = "%d/%d kinds"
+-- The catch window, after an item first caught at the place.
+L.NEW = "new"
+-- Chat, on the first catch of an item at a place: the item, the place.
+L.NEW_HERE_LINE = "New here: %s in %s"
 -- The catch window when nothing was caught at the place.
 L.NOTHING_HERE = "Nothing caught here yet."
 -- The numbers on a bar: how many, then their share ("21 · 45%").
