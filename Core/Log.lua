@@ -102,12 +102,14 @@ function Addon:RecordCatch(mapID, area, itemID, name, quantity)
     Bump(char.zones, mapID, area, itemID, quantity)
     local session = self.session or self:StartSession()
     Bump(session.zones, mapID, area, itemID, quantity)
+    session.catches = (session.catches or 0) + quantity
     session.last = GetServerTime()
     if name then global.items[itemID] = name end
     wipe(placesCache)
 end
 
----Forgets every character's catches and sessions, and the times of day and seasons they bit in.
+---Forgets every character's catches and sessions, the times of day and seasons they bit in, and
+---the records.
 function Addon:ClearLog()
     local global = self.db.global
     wipe(global.chars)
@@ -116,6 +118,7 @@ function Addon:ClearLog()
     self.session = nil
     wipe(placesCache)
     self:ClearTimes()
+    self:ClearRecords()
 end
 
 -- PlaceCounts' working tables, reused on every call: item ID -> count, the row tables, and the

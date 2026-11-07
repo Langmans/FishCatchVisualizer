@@ -60,6 +60,15 @@ L.QUALITY_COLORS_DESC = "Poor items grey, uncommon green, rare blue."
 
 -- The item tooltip: above the places an item was caught.
 L.TOOLTIP_TITLE = "Caught at"
+-- The item tooltip, under the places: the item's biggest stack, and where ("5 (Crystal Lake, Elwynn
+-- Forest)").
+L.TOOLTIP_STACK = "Biggest stack: %d (%s)"
+-- Chat, when a record falls: the item, the new stack, the old one.
+L.RECORD_STACK = "New record: biggest stack of %s, %d (was %d)"
+-- Chat: the catches of this session, the old record.
+L.RECORD_CATCHES = "New record: %d catches in one session (was %d)"
+-- Chat: this session's minutes, the old record's.
+L.RECORD_LENGTH = "New record: a session of %d minutes (was %d)"
 -- The item tooltip, under the places: when the item seems to bite (server time; day is 6 to 18).
 L.ONLY_DAY = "Only by day"
 L.ONLY_NIGHT = "Only at night"

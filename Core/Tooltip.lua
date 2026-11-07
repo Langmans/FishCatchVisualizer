@@ -28,6 +28,11 @@ function Addon:AddItemPlaces(tooltip, data)
         tooltip:AddDoubleLine(Addon.PlaceName(place.mapID, place.area), share, 1, 1, 1, 1, 1, 1)
     end
     if #places > limit then tooltip:AddLine(L.TOOLTIP_MORE:format(#places - limit), 0.6, 0.6, 0.6) end
+    local stack = self:StackRecord(itemID --[[@as number]])
+    if stack and stack.n > 1 then
+        local where = Addon.PlaceName(stack.mapID, stack.area)
+        tooltip:AddLine(L.TOOLTIP_STACK:format(stack.n, where), 0.6, 0.8, 1)
+    end
     local daytime, season = self:TimeNotes(itemID --[[@as number]])
     if daytime then tooltip:AddLine(daytime, 0.6, 0.8, 1) end
     if season then tooltip:AddLine(season, 0.6, 0.8, 1) end

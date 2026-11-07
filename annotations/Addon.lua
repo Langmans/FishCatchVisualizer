@@ -25,6 +25,10 @@
 ---@field NoteNewHere fun(self: Addon, itemID: number, mapID: number, area: AddonArea)
 ---@field KeepNewHere fun(self: Addon)
 ---@field IsNewHere fun(self: Addon, itemID: number): boolean
+---@field NoteRecords fun(self: Addon, itemID: number, quantity: number, mapID: number, area: AddonArea)
+---@field StackRecord fun(self: Addon, itemID: number): AddonStackRecord?
+---@field RarestAt fun(self: Addon, mapID: number, area: AddonArea?): (number?, number?)
+---@field ClearRecords fun(self: Addon)
 ---@field ClearTimes fun(self: Addon)
 ---@field TimeNotes fun(self: Addon, itemID: number): (string?, string?)
 ---@field windows AddonWindow[] every bar window, in the order made
@@ -135,6 +139,25 @@
 ---@field items table<number, string> item names as caught, for items the client has not loaded
 ---@field dev? AddonDevData Core\Dev.lua's, in a copy from the repository
 ---@field times table<number, AddonTimes> per item ID (0: every catch), by time of day and season
+---@field records AddonRecords
+
+---The records, account-wide (Core\Records.lua).
+---@class AddonRecords
+---@field stacks table<number, AddonStackRecord> per item ID
+---@field sessionCatches? AddonSessionRecord the most catches in one session
+---@field sessionLength? AddonSessionRecord the longest session, in seconds
+
+---An item's biggest stack.
+---@class AddonStackRecord
+---@field n number
+---@field mapID number
+---@field area AddonArea
+---@field t number server time
+
+---A session record: its value and the start of the session that set it.
+---@class AddonSessionRecord
+---@field n number
+---@field session number
 
 ---Catches by time of day (day, night) and by season (winter, spring, summer, autumn).
 ---@class AddonTimes
@@ -155,6 +178,9 @@
 ---@field start number server time
 ---@field last number server time of the last catch or of putting the pole away
 ---@field zones AddonZones
+---@field catches? number items caught in it
+---@field saidCatches? boolean whether it already said it beat the catches record
+---@field saidLength? boolean whether it already said it beat the length record
 
 ---One item at a place, as PlaceCounts hands it out.
 ---@class AddonRow
