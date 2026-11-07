@@ -23,11 +23,12 @@ ITEMS = {
 MAPS = { elwynn = 1429, westfall = 1436 }
 AREAS = { crystalLake = 9001, stoneCairn = 9002, daggerHills = 9003, goldshire = 9004 }
 
--- What the client knows about each item: its name, class and subclass, icon.
+-- What the client knows about each item: its name, class and subclass, icon, quality (0 poor,
+-- 1 common).
 local ITEM_INFO = {
-    [ITEMS.snapper] = { name = "Raw Longjaw Mud Snapper", class = 7, subclass = 8, icon = 133888 },
-    [ITEMS.smallfish] = { name = "Raw Brilliant Smallfish", class = 7, subclass = 8, icon = 133890 },
-    [ITEMS.sickly] = { name = "Sickly Looking Fish", class = 0, subclass = 0, icon = 133891 },
+    [ITEMS.snapper] = { name = "Raw Longjaw Mud Snapper", class = 7, subclass = 8, icon = 133888, quality = 1 },
+    [ITEMS.smallfish] = { name = "Raw Brilliant Smallfish", class = 7, subclass = 8, icon = 133890, quality = 1 },
+    [ITEMS.sickly] = { name = "Sickly Looking Fish", class = 0, subclass = 0, icon = 133891, quality = 0 },
     [ITEMS.pole] = { name = "Fishing Pole", class = 2, subclass = 20, icon = 132932 },
     [ITEMS.sword] = { name = "Shortsword", class = 2, subclass = 7, icon = 135274 },
 }
@@ -247,6 +248,10 @@ function NewClient(opts)
         GetItemNameByID = function(item)
             local info = ITEM_INFO[idOf(item)]
             return info and info.name
+        end,
+        GetItemQualityByID = function(item)
+            local info = ITEM_INFO[idOf(item)]
+            return info and info.quality
         end,
     }
     function GetInventoryItemID(unit, slot)
@@ -488,6 +493,30 @@ function NewClient(opts)
     function Region:SetShadowOffset(x, y)
         self.shadowOffset = { x, y }
     end
+    function Region:SetShadowColor(r, g, b, a)
+        self.shadowColor = { r, g, b, a }
+    end
+
+    -- The item quality colours as the client has them (ColorUtil), for poor and common.
+    ITEM_QUALITY_COLORS = {
+        [0] = { r = 0.62, g = 0.62, b = 0.62, hex = "|cff9d9d9d" },
+        [1] = { r = 1, g = 1, b = 1, hex = "|cffffffff" },
+    }
+    -- A ColorMixin as CreateColor makes it, as far as LibEditMode's colour picker uses it.
+    function CreateColor(r, g, b, a)
+        return {
+            r = r,
+            g = g,
+            b = b,
+            a = a or 1,
+            GetRGB = function(self)
+                return self.r, self.g, self.b
+            end,
+            GetRGBA = function(self)
+                return self.r, self.g, self.b, self.a
+            end,
+        }
+    end
     function Region:SetTexture(texture)
         self.texture = texture
     end
@@ -648,7 +677,7 @@ function NewClient(opts)
         enter = {},
         exit = {},
         active = nil,
-        SettingType = { Dropdown = 0, Checkbox = 1, Slider = 2 },
+        SettingType = { Dropdown = 0, Checkbox = 1, Slider = 2, ColorPicker = 10 },
     }
     client.editMode = editMode
     function editMode:AddFrame(frame, callback, default, name)

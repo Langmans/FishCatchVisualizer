@@ -43,6 +43,14 @@ L.OUTLINE_THICK = "Thick"
 L.SLUG = "High quality text"
 L.SLUG_DESC = "Draws the text with the game's Slug renderer: sharp at any size, also with an outline."
 L.SHADOW = "Text shadow"
+L.SHADOW_COLOR = "Shadow colour"
+-- The shadow's offset: right (or left, below 0), and up (or down, below 0), in pixels.
+L.SHADOW_X = "Shadow offset x"
+L.SHADOW_Y = "Shadow offset y"
+L.TITLE_COLOR = "Title colour"
+L.TEXT_COLOR = "Text colour"
+L.QUALITY_COLORS = "Items in their quality's colour"
+L.QUALITY_COLORS_DESC = "Poor items grey, uncommon green, rare blue."
 
 -- The item tooltip: above the places an item was caught.
 L.TOOLTIP_TITLE = "Caught at"

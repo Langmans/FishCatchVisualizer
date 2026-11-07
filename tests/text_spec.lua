@@ -21,21 +21,73 @@ local function strings(window)
     return out
 end
 
----Sets an option of the general page's Text box as AceConfig does.
-local function setOption(key, value)
+---An option of the general page's Text box as AceConfig has it.
+local function option(key)
     local options = LibStub("AceConfigRegistry-3.0"):GetOptionsTable("FishCatchVisualizer", "dialog", "test-1")
-    local text = options.args.general.args.window.args.text
-    text.args[key].set({ "general", "window", "text", key }, value)
+    return options.args.general.args.window.args.text.args[key], { "general", "window", "text", key }
+end
+
+---Sets an option of the Text box as AceConfig does; a colour takes r, g, b (and a).
+local function setOption(key, ...)
+    local entry, info = option(key)
+    entry.set(info, ...)
 end
 
 describe("the windows' text", function()
-    it("is the shared default font at 12, the title at 14, no outline, with a shadow", function()
+    it("is the shared default font at 12, the title at 14, no outline, with a black shadow", function()
         local _, window = shown()
         assert.are.same({ "Fonts\\FRIZQT__.TTF", 14, "" }, window.title.font)
         for _, text in ipairs(strings(window)) do
             if text ~= window.title then assert.are.same({ "Fonts\\FRIZQT__.TTF", 12, "" }, text.font) end
             assert.are.same({ 1, -1 }, text.shadowOffset)
+            assert.are.same({ 0, 0, 0, 1 }, text.shadowColor)
         end
+    end)
+
+    it("draws the title gold and the rest pure white, in colours of its own", function()
+        local _, window = shown()
+        assert.are.same({ 1, 0.82, 0 }, window.title.textColor)
+        for _, text in ipairs({ window.subtitle, window.empty, window.more, window.rows[1].left, window.rows[1].right }) do
+            assert.are.same({ 1, 1, 1 }, text.textColor)
+        end
+        setOption("titleColor", 0.2, 0.4, 0.6)
+        setOption("textColor", 0.9, 0.8, 0.7)
+        assert.are.same({ 0.2, 0.4, 0.6 }, window.title.textColor)
+        assert.are.same({ 0.9, 0.8, 0.7 }, window.subtitle.textColor)
+        assert.are.same({ 0.9, 0.8, 0.7 }, { option("textColor").get(select(2, option("textColor"))) })
+    end)
+
+    it("leaves the buttons their own colours: gold for the chosen one", function()
+        local _, window = shown()
+        setOption("textColor", 0.5, 0.5, 0.5)
+        assert.are.same({ 1, 0.82, 0 }, window.buttons.session.label.textColor)
+    end)
+
+    it("takes a shadow colour and its own x and y offset", function()
+        local _, window = shown()
+        setOption("shadowColor", 0.1, 0.2, 0.3, 0.5)
+        setOption("shadowX", 3)
+        setOption("shadowY", -2)
+        assert.are.same({ 3, -2 }, window.title.shadowOffset)
+        setOption("shadowX", 1.5)
+        assert.are.same({ 1.5, -2 }, window.title.shadowOffset, "fractions too")
+        assert.are.equal(0.1, option("shadowX").step, "typed to a tenth in the options")
+        assert.are.same({ 0.1, 0.2, 0.3, 0.5 }, window.rows[1].left.shadowColor)
+        assert.are.same({ 0.1, 0.2, 0.3, 0.5 }, { option("shadowColor").get(select(2, option("shadowColor"))) })
+    end)
+
+    it("names each item in its quality's colour, unless switched off", function()
+        local client, window = shown()
+        client:catch(ITEMS.sickly)
+        local function row(name)
+            for _, r in ipairs(window.rows) do
+                if r.left.text:find(name, 1, true) then return r.left.text end
+            end
+        end
+        assert.truthy(row("Sickly Looking Fish"):find("|cff9d9d9dSickly Looking Fish|r", 1, true))
+        assert.truthy(row("Raw Longjaw Mud Snapper"):find("|cffffffffRaw Longjaw Mud Snapper|r", 1, true))
+        setOption("qualityColors", false)
+        assert.is_nil(row("Sickly Looking Fish"):find("|c", 1, true))
     end)
 
     it("takes an outline and Slug together, and goes without shadow", function()
@@ -106,5 +158,24 @@ describe("the windows' text", function()
             values[#values + 1] = option.value
         end
         assert.are.same({ "none", "thin", "thick" }, values)
+    end)
+
+    it("has the colours, the shadow's offset and the quality colours in Edit Mode too", function()
+        local client, window = shown()
+        local L = client.Addon.L
+        local title = client:editModeSetting(window.frame, L.TITLE_COLOR)
+        assert.are.same({ 1, 0.82, 0, 1 }, { title.get("Modern"):GetRGBA() })
+        assert.is_true(client:editModeSetting(window.frame, L.SHADOW_COLOR).hasOpacity)
+        title.set("Modern", CreateColor(0.5, 0.6, 0.7))
+        client:editModeSetting(window.frame, L.TEXT_COLOR).set("Modern", CreateColor(0.1, 0.1, 0.1))
+        client:editModeSetting(window.frame, L.SHADOW_COLOR).set("Modern", CreateColor(1, 0, 0, 0.5))
+        client:editModeSetting(window.frame, L.SHADOW_X).set("Modern", 2)
+        client:editModeSetting(window.frame, L.SHADOW_Y).set("Modern", -3)
+        assert.are.same({ 0.5, 0.6, 0.7 }, window.title.textColor)
+        assert.are.same({ 0.1, 0.1, 0.1 }, window.subtitle.textColor)
+        assert.are.same({ 1, 0, 0, 0.5 }, window.title.shadowColor)
+        assert.are.same({ 2, -3 }, window.title.shadowOffset)
+        client:editModeSetting(window.frame, L.QUALITY_COLORS).set("Modern", false)
+        assert.is_false(client.Addon.db.profile.qualityColors)
     end)
 end)

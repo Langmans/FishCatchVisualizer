@@ -8,5 +8,6 @@
 - Item tooltip: where the item was caught, best share first.
 - Window position, size and opacity in Edit Mode, per layout; see-through by default.
 - Text settings in the options and in Edit Mode: any LibSharedMedia font, size, outline, high
-  quality (Slug) rendering and shadow.
+  quality (Slug) rendering, title and text colour, items in their quality's colour, and a shadow
+  with its own colour and x/y offset.
 - `/fcv` commands and options in the game's AddOns settings.

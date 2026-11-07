@@ -54,6 +54,12 @@ local DEFAULTS = {
         outline = "none",
         slug = false,
         shadow = true,
+        shadowX = 1,
+        shadowY = -1,
+        shadowColor = { r = 0, g = 0, b = 0, a = 1 },
+        titleColor = { r = 1, g = 0.82, b = 0 },
+        textColor = { r = 1, g = 1, b = 1 },
+        qualityColors = true,
         -- Per Edit Mode layout, per window: where it sits and its look (Core\Window.lua).
         layouts = {},
     },

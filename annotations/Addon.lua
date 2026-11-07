@@ -23,6 +23,9 @@
 ---@field OUTLINE_ORDER string[] the outline choices in the order the lists show them
 ---@field MIN_FONT_SIZE number
 ---@field MAX_FONT_SIZE number
+---@field MAX_SHADOW_OFFSET number the shadow's offset either way
+---@field TextChanged fun(self: Addon)
+---@field SetTextColor fun(self: Addon, key: "titleColor"|"textColor"|"shadowColor", r: number, g: number, b: number, a: number?)
 ---@field TextSettings fun(): LibEditModeSetting[] a window's Edit Mode text settings, new tables
 ---@field ApplyText fun(self: Addon)
 ---@field SetupText fun(self: Addon)
@@ -91,6 +94,12 @@
 ---@field outline string an Addon.outlines key
 ---@field slug boolean draw the text with the Slug renderer
 ---@field shadow boolean
+---@field shadowX number pixels right, fractions too
+---@field shadowY number pixels up
+---@field shadowColor AddonColor
+---@field titleColor AddonColor
+---@field textColor AddonColor
+---@field qualityColors boolean item names in their quality's colour
 ---@field layouts table<string, table<string, AddonWindowLayout>> per Edit Mode layout, per window key
 
 ---A window's place and look, every field set: Window.lua's defaults.
@@ -167,10 +176,25 @@
 ---@field buttons table<string, AddonButton>
 ---@field lastButton? string the key of the button added last
 ---@field layoutName? string the Edit Mode layout in use
----@field fontPath? string the text's font file, once ApplyFont has run
----@field fontSize? number
----@field fontFlags? string
----@field fontShadow? boolean
+---@field look? AddonTextLook the text, once ApplyLook has run
+
+---What the windows draw their text with (Core\Text.lua TextLook; one shared table).
+---@class AddonTextLook
+---@field path string the font's file
+---@field size number
+---@field flags string SetFont's flags: "OUTLINE, SLUG" and the like
+---@field shadowX number 0 without shadow
+---@field shadowY number
+---@field shadowColor AddonColor
+---@field titleColor AddonColor
+---@field textColor AddonColor
+
+---A colour as the profile keeps it; a has a value only where opacity can be set.
+---@class AddonColor
+---@field r number
+---@field g number
+---@field b number
+---@field a? number
 
 ---A window's bar row.
 ---@class AddonBarRow

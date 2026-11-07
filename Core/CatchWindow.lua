@@ -19,11 +19,18 @@ for _, view in ipairs({ Addon.views.session, Addon.views.char, Addon.views.accou
     end)
 end
 
----An item's icon and name: the client's name, or the one saved when it was caught.
+---An item's icon and name: the client's name, or the one saved when it was caught; in its quality's
+---colour when the profile asks for it and the client knows the quality.
 ---@param itemID number
 ---@return string
 local function ItemLabel(itemID)
     local name = C_Item.GetItemNameByID(itemID) or Addon.db.global.items[itemID] or ("item:" .. itemID)
+    if Addon.db.profile.qualityColors then
+        local quality = C_Item.GetItemQualityByID(itemID)
+        ---@type { hex: string }?
+        local color = quality and ITEM_QUALITY_COLORS[quality]
+        if color then name = color.hex .. name .. "|r" end
+    end
     return ("|T%s:14:14|t %s"):format(C_Item.GetItemIconByID(itemID) or UNKNOWN_ICON, name)
 end
 

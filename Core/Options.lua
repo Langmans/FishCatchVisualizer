@@ -72,6 +72,51 @@ local function Setting(option, apply)
     return option
 end
 
+---A colour picker for a profile colour.
+---@param name string
+---@param key "titleColor"|"textColor"|"shadowColor"
+---@param order number
+---@param hasAlpha boolean?
+---@return table
+local function ColorOption(name, key, order, hasAlpha)
+    return {
+        type = "color",
+        name = name,
+        order = order,
+        hasAlpha = hasAlpha,
+        ---@return number r, number g, number b, number? a
+        get = function()
+            ---@type AddonColor
+            local color = Addon.db.profile[key]
+            return color.r, color.g, color.b, color.a
+        end,
+        ---@param _ table AceConfig's info
+        ---@param r number
+        ---@param g number
+        ---@param b number
+        ---@param a number?
+        set = function(_, r, g, b, a)
+            Addon:SetTextColor(key, r, g, b, hasAlpha and a or nil)
+        end,
+    }
+end
+
+---A slider for one of the shadow's offsets; its box takes a typed number to a tenth.
+---@param name string
+---@param order number
+---@return table
+local function OffsetOption(name, order)
+    return Setting({
+        type = "range",
+        name = name,
+        order = order,
+        min = -Addon.MAX_SHADOW_OFFSET,
+        max = Addon.MAX_SHADOW_OFFSET,
+        step = 0.1,
+        bigStep = 0.5,
+    }, "TextChanged")
+end
+
 ---The Text box: the same profile fields as the windows' Edit Mode dialogs.
 ---@return table
 local function TextOptions()
@@ -86,7 +131,7 @@ local function TextOptions()
             end
             return values
         end,
-    }, "ApplyText")
+    }, "TextChanged")
     -- No saved font is LibSharedMedia's default, which the list shows chosen.
     font.get = function()
         return Addon.db.profile.font or LibStub("LibSharedMedia-3.0"):GetDefault("font")
@@ -105,16 +150,27 @@ local function TextOptions()
                 min = Addon.MIN_FONT_SIZE,
                 max = Addon.MAX_FONT_SIZE,
                 step = 1,
-            }, "ApplyText"),
+            }, "TextChanged"),
             outline = Setting({
                 type = "select",
                 name = L.OUTLINE,
                 order = 3,
                 values = Choices("OUTLINE", Addon.OUTLINE_ORDER),
                 sorting = Addon.OUTLINE_ORDER,
-            }, "ApplyText"),
-            slug = Setting({ type = "toggle", name = L.SLUG, desc = L.SLUG_DESC, order = 4 }, "ApplyText"),
-            shadow = Setting({ type = "toggle", name = L.SHADOW, order = 5 }, "ApplyText"),
+            }, "TextChanged"),
+            slug = Setting({ type = "toggle", name = L.SLUG, desc = L.SLUG_DESC, order = 4 }, "TextChanged"),
+            titleColor = ColorOption(L.TITLE_COLOR, "titleColor", 5),
+            textColor = ColorOption(L.TEXT_COLOR, "textColor", 6),
+            qualityColors = Setting({
+                type = "toggle",
+                name = L.QUALITY_COLORS,
+                desc = L.QUALITY_COLORS_DESC,
+                order = 7,
+            }, "TextChanged"),
+            shadow = Setting({ type = "toggle", name = L.SHADOW, order = 8 }, "TextChanged"),
+            shadowColor = ColorOption(L.SHADOW_COLOR, "shadowColor", 9, true),
+            shadowX = OffsetOption(L.SHADOW_X, 10),
+            shadowY = OffsetOption(L.SHADOW_Y, 11),
         },
     }
 end

@@ -137,37 +137,38 @@ function Window:Slider(name, field, min, max)
     }
 end
 
----Gives a font string the window's text, `larger` points above its size. Before the first
----ApplyFont the template's font stays.
+---Gives a font string the window's text, `larger` points above its size, in the look's colour
+---`colorKey` (none: the button labels, which Select colours). Before the first ApplyLook the
+---template's font stays.
 ---@param text FontString
 ---@param larger number?
-function Window:StyleText(text, larger)
-    if not self.fontPath then return end
-    text:SetFont(self.fontPath, self.fontSize + (larger or 0), self.fontFlags)
-    if self.fontShadow then
-        text:SetShadowOffset(1, -1)
-    else
-        text:SetShadowOffset(0, 0)
-    end
+---@param colorKey "titleColor"|"textColor"|nil
+function Window:StyleText(text, larger, colorKey)
+    local look = self.look
+    if not look then return end
+    text:SetFont(look.path, look.size + (larger or 0), look.flags)
+    text:SetShadowOffset(look.shadowX, look.shadowY)
+    local shadow = look.shadowColor
+    text:SetShadowColor(shadow.r, shadow.g, shadow.b, shadow.a)
+    if not colorKey then return end
+    local color = look[colorKey]
+    text:SetTextColor(color.r, color.g, color.b)
 end
 
 ---The text for every font string the window has, and for those it makes later.
----@param path string
----@param size number
----@param flags string
----@param shadow boolean
-function Window:ApplyFont(path, size, flags, shadow)
-    self.fontPath, self.fontSize, self.fontFlags, self.fontShadow = path, size, flags, shadow
-    self:StyleText(self.title, TITLE_LARGER)
-    self:StyleText(self.subtitle)
-    self:StyleText(self.empty)
-    self:StyleText(self.more)
+---@param look AddonTextLook
+function Window:ApplyLook(look)
+    self.look = look
+    self:StyleText(self.title, TITLE_LARGER, "titleColor")
+    self:StyleText(self.subtitle, nil, "textColor")
+    self:StyleText(self.empty, nil, "textColor")
+    self:StyleText(self.more, nil, "textColor")
     for _, button in pairs(self.buttons) do
         self:StyleText(button.label)
     end
     for _, row in ipairs(self.rows) do
-        self:StyleText(row.left)
-        self:StyleText(row.right)
+        self:StyleText(row.left, nil, "textColor")
+        self:StyleText(row.right, nil, "textColor")
     end
 end
 
@@ -237,8 +238,8 @@ function Window:FillRow(i, left, right, value)
         rightText:SetPoint("RIGHT", -4, 0)
         rightText:SetJustifyH("RIGHT")
         leftText:SetPoint("RIGHT", rightText, "LEFT", -4, 0)
-        self:StyleText(leftText)
-        self:StyleText(rightText)
+        self:StyleText(leftText, nil, "textColor")
+        self:StyleText(rightText, nil, "textColor")
         row = { bar = bar, left = leftText, right = rightText }
         self.rows[i] = row
     end

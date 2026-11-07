@@ -15,8 +15,10 @@ Each Edit Mode layout keeps its own spot. Its background is see-through until yo
 opacity.
 
 **Text:** any font LibSharedMedia knows (ElvUI's and SharedMedia's too), a size, an outline
-(none, thin, thick), high quality Slug rendering on top of any outline, and a shadow. The same
-settings are in the options and in the window's Edit Mode dialog.
+(none, thin, thick), high quality Slug rendering on top of any outline, a title and a text colour
+(gold and pure white), items in their quality's colour, and a shadow with its own colour and x/y
+offset (fractions too). The same settings are in the options and in the window's Edit Mode
+dialog.
 
 ## Commands
 
@@ -104,11 +106,16 @@ LibEditMode (tag 19, the first with interface 16001) and LibSharedMedia-3.0 (svn
 ### Text
 
 `Core\Text.lua`: profile fields `font` (a LibSharedMedia name; none means its default),
-`fontSize`, `outline` (`Addon.outlines`: none, thin = `OUTLINE`, thick = `THICKOUTLINE`), `slug`
-and `shadow`. The SetFont flags are the outline's plus `SLUG`, comma-separated
-(`"OUTLINE, SLUG"`); the title is two points larger; the shadow is an offset of (1, -1). Both the
-options and every window's Edit Mode dialog read and write these same fields, and a font an addon
-registers later (`LibSharedMedia_Registered`) is applied when it arrives.
+`fontSize`, `outline` (`Addon.outlines`: none, thin = `OUTLINE`, thick = `THICKOUTLINE`), `slug`,
+`titleColor`, `textColor`, `qualityColors`, `shadow`, `shadowColor` (with alpha), `shadowX` and
+`shadowY`. The SetFont flags are the outline's plus `SLUG`, comma-separated (`"OUTLINE, SLUG"`);
+the title is two points larger. Colours are set on every font string, so the templates' own
+colours (GameFontDisableSmall's grey) never show; the view buttons keep theirs (gold for the
+chosen one). Item names carry `ITEM_QUALITY_COLORS[quality].hex`. Both the options and every
+window's Edit Mode dialog read and write these same fields (Edit Mode's colour pickers hand over
+ColorMixins; its sliders have no typed input, so the offsets go in half pixels there and in tenths
+in the options' slider box), and a font an addon registers later (`LibSharedMedia_Registered`) is
+applied when it arrives.
 
 ## Development
 
