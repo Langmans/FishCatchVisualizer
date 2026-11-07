@@ -16,7 +16,8 @@ function Addon:HasFishingPole()
 end
 
 ---On login and on every change of the main hand: a pole coming in starts or continues the
----session, one going away ends it; then the window is shown or hidden.
+---session, one going away ends it; then the window is shown or hidden and the broker shows the
+---session's catches.
 ---@param event string
 ---@param slot number? PLAYER_EQUIPMENT_CHANGED's slot
 function Addon:UpdateFishing(event, slot)
@@ -31,6 +32,7 @@ function Addon:UpdateFishing(event, slot)
         end
     end
     self:UpdateCatchWindow()
+    self:UpdateBroker()
 end
 
 ---LOOT_OPENED: every item of a fishing loot window is logged where the player stands, with its
@@ -52,6 +54,7 @@ function Addon:OnLootOpened()
                 self:NoteTime(itemID, quantity)
                 self:NoteRecords(itemID, quantity, mapID, area)
                 if isNew then self:NoteNewHere(itemID, mapID, area) end
+                self:UpdateBroker()
                 self:SendMessage(self.messages.catch, itemID, quantity, mapID, area)
             end
         end

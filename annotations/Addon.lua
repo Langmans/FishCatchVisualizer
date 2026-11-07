@@ -29,6 +29,8 @@
 ---@field StackRecord fun(self: Addon, itemID: number): AddonStackRecord?
 ---@field RarestAt fun(self: Addon, mapID: number, area: AddonArea?): (number?, number?)
 ---@field ClearRecords fun(self: Addon)
+---@field UpdateBroker fun(self: Addon)
+---@field LatestSession fun(self: Addon): AddonSession?
 ---@field ClearTimes fun(self: Addon)
 ---@field TimeNotes fun(self: Addon, itemID: number): (string?, string?)
 ---@field windows AddonWindow[] every bar window, in the order made

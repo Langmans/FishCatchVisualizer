@@ -6,6 +6,7 @@
     <Script file="Times.lua"/>
     <Script file="NewHere.lua"/>
     <Script file="Records.lua"/>
+    <Script file="Broker.lua"/>
     <Script file="Detect.lua"/>
     <!-- Text.lua before Window.lua: each window takes its text settings at creation. -->
     <Script file="Text.lua"/>

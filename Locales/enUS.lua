@@ -60,6 +60,14 @@ L.QUALITY_COLORS_DESC = "Poor items grey, uncommon green, rare blue."
 
 -- The item tooltip: above the places an item was caught.
 L.TOOLTIP_TITLE = "Caught at"
+-- The data broker's tooltip (Titan Panel and the like): this session's catches and minutes.
+L.BROKER_SESSION = "This session: %d caught in %d minutes"
+L.BROKER_NO_SESSION = "No session yet."
+-- The data broker's tooltip: the item caught least where the player stands, and its share.
+L.BROKER_RAREST = "Rarest here: %s (%s)"
+L.BROKER_RECORD_CATCHES = "Most catches in a session: %d"
+L.BROKER_RECORD_LENGTH = "Longest session: %d minutes"
+L.BROKER_CLICK = "Click: options"
 -- The item tooltip, under the places: the item's biggest stack, and where ("5 (Crystal Lake, Elwynn
 -- Forest)").
 L.TOOLTIP_STACK = "Biggest stack: %d (%s)"
