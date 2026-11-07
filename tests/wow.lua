@@ -39,14 +39,42 @@ local AREA_NAMES = {
     [AREAS.goldshire] = "Goldshire",
 }
 
----Compiled once per run: a file's chunk runs again for every client, each time from the top.
+---A file's source as the client gets it: from a release, where the packager comments out every line
+---between `--@debug@` and `--@end-debug@`, unless `dev` (a copy straight from the repository).
+---The line count stays, so coverage still points at the right lines.
+---@param file string
+---@param dev boolean
+---@return string
+local function AsPackaged(file, dev)
+    local handle = assert(io.open(file, "rb"))
+    local source = handle:read("*a")
+    handle:close()
+    if dev or not source:find("--@debug@", 1, true) then return source end
+    local lines, inDebug = {}, false
+    for line in (source .. "\n"):gmatch("(.-)\r?\n") do
+        if line:match("^%s*%-%-@end%-debug@") then
+            inDebug = false
+        elseif inDebug then
+            line = "--" .. line
+        elseif line:match("^%s*%-%-@debug@") then
+            inDebug = true
+        end
+        lines[#lines + 1] = line
+    end
+    return table.concat(lines, "\n")
+end
+
+---Compiled once per run and kind of copy: a file's chunk runs again for every client, each time
+---from the top.
 ---@type table<string, function>
 local chunks = {}
 ---@param file string
+---@param dev boolean
 ---@return function
-local function Chunk(file)
-    chunks[file] = chunks[file] or assert(loadfile(file))
-    return chunks[file]
+local function Chunk(file, dev)
+    local key = (dev and "dev:" or "release:") .. file
+    chunks[key] = chunks[key] or assert(loadstring(AsPackaged(file, dev), "@" .. file))
+    return chunks[key]
 end
 
 ---Packs varargs with their count, nils included (Lua 5.1 has no table.pack).
@@ -69,6 +97,7 @@ end
 ---@field locale string? the client's language (GetLocale), enUS by default
 ---@field noTooltipData boolean? a client without TooltipDataProcessor
 ---@field addonName string? the addon's folder name, FishCatchVisualizer by default: every name it shows the game comes from it
+---@field dev boolean? a copy straight from the repository: `--@debug@` blocks run (Core\Dev.lua)
 
 ---@param opts TestClientOptions?
 function NewClient(opts)
@@ -103,6 +132,11 @@ function NewClient(opts)
     end
     function GetServerTime()
         return client.serverTime
+    end
+    -- client.screenshots: how many screenshots were taken.
+    client.screenshots = 0
+    function Screenshot()
+        client.screenshots = client.screenshots + 1
     end
     function IsLoggedIn()
         return client.loggedIn
@@ -643,7 +677,7 @@ function NewClient(opts)
     local ns = {}
     for _, file in ipairs(TOC_FILES) do
         local path = file:gsub("^%./", "")
-        if not path:match("^Libs/LibEditMode/") then Chunk(file)(addonName, ns) end
+        if not path:match("^Libs/LibEditMode/") then Chunk(file, opts.dev == true)(addonName, ns) end
         if path == "Libs/LibStub/LibStub.lua" then
             local lib = LibStub:NewLibrary("LibEditMode", 1)
             for key, value in pairs(editMode) do

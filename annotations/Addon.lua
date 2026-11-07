@@ -17,6 +17,8 @@
 ---@field PlaceName fun(mapID: number, area: AddonArea): string
 ---@field NewBarWindow fun(key: string, name: string, color: number[]): AddonWindow
 ---@field catchWindow AddonWindow
+---@field DevOptions? fun(self: Addon): table the development box of the options, only in a copy from the repository
+---@field AddItemPlaces fun(self: Addon, tooltip: GameTooltip, data: AddonTooltipData?)
 ---@field L table<string, string> the client language's strings
 ---@field db AddonDB
 ---@field showModes table<string, string> when the catch window shows: showModes.pole is "pole"
@@ -98,6 +100,12 @@
 ---@field chars table<string, AddonChar> by "Name - Realm"
 ---@field sessions AddonSession[] oldest first
 ---@field items table<number, string> item names as caught, for items the client has not loaded
+---@field dev? AddonDevData Core\Dev.lua's, in a copy from the repository
+
+---The development screenshots' switch and what has been shot (Core\Dev.lua).
+---@class AddonDevData
+---@field on boolean
+---@field shots table<string, true> by kind
 
 ---One character's catches.
 ---@class AddonChar

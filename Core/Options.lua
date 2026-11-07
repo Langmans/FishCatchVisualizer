@@ -142,6 +142,8 @@ function Addon:GetOptionsTable()
                             }),
                         },
                     },
+                    -- Only in a copy straight from the repository (Core\Dev.lua).
+                    dev = Addon.DevOptions and Addon:DevOptions() or nil,
                     log = {
                         type = "group",
                         inline = true,

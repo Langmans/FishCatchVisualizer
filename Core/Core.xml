@@ -9,4 +9,6 @@
     <Script file="Tooltip.lua"/>
     <Script file="Commands.lua"/>
     <Script file="Options.lua"/>
+    <!-- Development only, last: it hooks the methods above. One @debug block, empty in a release. -->
+    <Script file="Dev.lua"/>
 </Ui>

@@ -65,6 +65,19 @@ an ID keeps its text as key; no subzone at all is area `0`, the zone itself.
 | `Core\Tooltip.lua` | the item tooltip lines (`TooltipDataProcessor`) |
 | `Core\Commands.lua`, `Core\Options.lua` | `/fcv` and the AceConfig options |
 
+### Screenshots while testing in game
+
+`Core\Dev.lua`: in a copy straight from the repository (such as the game worktree) the options
+have a Development box with "Dev screenshots", off until switched on. On, the first time each
+kind of moment from the in-game checks happens (the window per view, in Edit Mode, for the whole
+zone, without a subzone, with nothing caught or with more rows; a fishing loot window with and
+without autoloot; an item tooltip with places, per tooltip; the options window), a grey
+`[<NAME> dev] ...` chat line says which, then one screenshot goes to the game's `Screenshots`
+folder, at most one every two seconds. What has a screenshot is kept in the saved data; "Forget
+the screenshots taken" starts over. It hooks the addon's own methods and listens to LOOT_OPENED
+itself. The whole file is a `--@debug@` block, which the packager comments out of every release;
+the specs load the files the same way unless a client asks for `dev`.
+
 ### Renaming
 
 Every name the game and other addons see is made from the folder's name, `Addon.NAME`
