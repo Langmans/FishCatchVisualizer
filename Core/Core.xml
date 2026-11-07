@@ -1,6 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
     <!-- Addon.lua first: it makes the addon object every other file adds to. -->
     <Script file="Addon.lua"/>
+    <Script file="Debug.lua"/>
     <Script file="Place.lua"/>
     <Script file="Log.lua"/>
     <Script file="Times.lua"/>

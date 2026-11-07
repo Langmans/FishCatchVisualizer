@@ -66,6 +66,8 @@ local DEFAULTS = {
         titleColor = { r = 1, g = 0.82, b = 0 },
         textColor = { r = 1, g = 1, b = 1 },
         qualityColors = true,
+        -- How much goes to OAP Debug when it is installed (Core\Debug.lua).
+        oapDebug = "metrics",
         -- Per Edit Mode layout, per window: where it sits and its look (Core\Window.lua).
         layouts = {},
     },
@@ -90,6 +92,7 @@ end
 
 function Addon:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New(Addon.Global("DB"), DEFAULTS, true) --[[@as AddonDB]]
+    self:ApplyDebugLevel()
     self:SetupCommands()
     self:SetupOptions()
     self:SetupTooltip()

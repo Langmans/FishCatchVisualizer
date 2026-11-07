@@ -103,6 +103,7 @@ an ID keeps its text as key; no subzone at all is area `0`, the zone itself.
 | File | |
 |---|---|
 | `Core\Addon.lua` | the addon object, enums, saved-data defaults, event registration |
+| `Core\Debug.lua` | log lines and counts for OAP Debug |
 | `Core\Place.lua` | map and area key of where the player stands, place names |
 | `Core\Log.lua` | recording catches, sessions, counts at a place, an item's places |
 | `Core\Times.lua` | day and night, seasons, the tooltip's time notes |
@@ -116,6 +117,16 @@ an ID keeps its text as key; no subzone at all is area `0`, the zone itself.
 | `Core\CatchWindow.lua` | the catch window's content |
 | `Core\Tooltip.lua` | the item tooltip lines (`TooltipDataProcessor`) |
 | `Core\Commands.lua`, `Core\Options.lua` | `/fcv` and the AceConfig options |
+
+### OAP Debug
+
+`Core\Debug.lua`, the only file that talks to OAP Debug (as in BattleCry): when it is installed
+the addon registers under its folder and sends log lines and counts, as much as the "OAP Debug"
+level in the options asks (errors only, normal, normal and counts, detailed). Logged: every loot
+event (detailed: the event, its slots, whether it is fishing loot), each catch with the event that
+counted it, hidden slots, the area name lookup and its milliseconds, sessions starting, going on and
+ending, and the guild (hello, counts sent and kept, dropped snapshots). Counted: catches, guild
+snapshots sent and received.
 
 ### Screenshots while testing in game
 

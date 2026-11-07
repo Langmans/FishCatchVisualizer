@@ -72,7 +72,14 @@
 ---@field HasFishingPole fun(self: Addon): boolean
 ---@field UpdateCatchWindow fun(self: Addon)
 ---@field UpdateFishing fun(self: Addon, event: string, slot: number?)
----@field OnLoot fun(self: Addon)
+---@field OnLoot fun(self: Addon, event: string)
+---@field Log fun(self: Addon, kind: "error"|"warn"|"info"|"debug", msg: string, ...: any)
+---@field Count fun(self: Addon, name: string)
+---@field HasOAPDebug fun(): boolean
+---@field ApplyDebugLevel fun(self: Addon)
+---@field SetDebugLevel fun(self: Addon, value: string)
+---@field debugLevels table<string, number>
+---@field DEBUG_LEVEL_ORDER string[]
 ---@field OnLootClosed fun(self: Addon)
 ---@field StartSession fun(self: Addon): AddonSession
 ---@field EndSession fun(self: Addon)
@@ -115,6 +122,7 @@
 ---@field tooltip boolean whether item tooltips list the places
 ---@field tooltipPlaces number places listed at most
 ---@field share boolean swap counts with guildmates
+---@field oapDebug string what goes to OAP Debug: an Addon.debugLevels key
 ---@field font? string a LibSharedMedia font name; none: its default
 ---@field fontSize number
 ---@field outline string an Addon.outlines key

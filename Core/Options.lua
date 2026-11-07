@@ -298,6 +298,34 @@ function Addon:GetOptionsTable()
                             },
                         },
                     },
+                    debug = {
+                        type = "group",
+                        inline = true,
+                        name = L.DEBUG,
+                        order = 90,
+                        args = {
+                            level = {
+                                type = "select",
+                                name = L.DEBUG_LEVEL,
+                                desc = function()
+                                    return Addon.HasOAPDebug() and L.DEBUG_DESC
+                                        or L.DEBUG_DESC .. " " .. L.DEBUG_MISSING
+                                end,
+                                order = 1,
+                                values = Choices("DEBUG", Addon.DEBUG_LEVEL_ORDER),
+                                sorting = Addon.DEBUG_LEVEL_ORDER,
+                                ---@return string
+                                get = function()
+                                    return Addon.db.profile.oapDebug
+                                end,
+                                ---@param _ table AceConfig's info
+                                ---@param value string
+                                set = function(_, value)
+                                    Addon:SetDebugLevel(value)
+                                end,
+                            },
+                        },
+                    },
                 },
             },
             profiles = ProfileOptions(),

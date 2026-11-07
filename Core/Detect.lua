@@ -50,10 +50,16 @@ local WINDOW = 1
 ---the player stands, with its time of day and season, whether it is new there and the records it
 ---beats, before other addons and the window hear of it. Money and anything the client hides are
 ---skipped.
-function Addon:OnLoot()
-    if not IsFishingLoot() then return end
+---@param event string
+function Addon:OnLoot(event)
+    local fishing = IsFishingLoot()
+    self:Log("debug", "{1}: {2} slots, fishing {3}", event, GetNumLootItems(), fishing)
+    if not fishing then return end
     local mapID, area = Addon.CurrentPlace()
-    if not mapID or not area then return end
+    if not mapID or not area then
+        self:Log("warn", "fishing loot where the client tells no map")
+        return
+    end
     local now = GetTime()
     if countedAt and now - countedAt > WINDOW then wipe(counted) end
     countedAt = now
@@ -61,10 +67,13 @@ function Addon:OnLoot()
         if not counted[slot] and GetLootSlotType(slot) == Enum.LootSlotType.Item then
             local link = GetLootSlotLink(slot)
             local itemID = Addon.Readable(link) and C_Item.GetItemInfoInstant(link)
+            if not itemID then self:Log("warn", "slot {1}: the item is hidden", slot) end
             if itemID then
                 counted[slot] = true
                 local _, name, quantity = GetLootSlotInfo(slot)
                 quantity = Addon.Readable(quantity) and quantity or 1
+                self:Log("info", "caught {1} x{2} at {3} on {4}", itemID, quantity, Addon.PlaceName(mapID, area), event)
+                self:Count("catches")
                 local isNew = not self:EverCaughtHere(mapID, area, itemID)
                 self:RecordCatch(mapID, area, itemID, Addon.Readable(name) and name or nil, quantity)
                 self:NoteTime(itemID, quantity)

@@ -23,10 +23,15 @@ local areaIDs
 local function AreaID(name)
     if not areaIDs then
         areaIDs = {}
+        local started, found = debugprofilestop(), 0
         for id = 1, MAX_AREA_ID do
             local areaName = C_Map.GetAreaInfo(id)
-            if areaName and areaIDs[areaName] == nil then areaIDs[areaName] = id end
+            if areaName and areaIDs[areaName] == nil then
+                areaIDs[areaName] = id
+                found = found + 1
+            end
         end
+        Addon:Log("info", "area names looked up: {1} in {2} ms", found, math.floor(debugprofilestop() - started))
     end
     return areaIDs[name]
 end

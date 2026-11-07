@@ -134,6 +134,10 @@ function NewClient(opts)
     function GetServerTime()
         return client.serverTime
     end
+    -- Milliseconds, for timing a piece of code.
+    function debugprofilestop()
+        return client.time * 1000
+    end
     -- The server's time of day (client.hour, client.minute) and date (client.month).
     client.hour, client.minute, client.month = 12, 0, 11
     function GetGameTime()

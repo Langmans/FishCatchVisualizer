@@ -130,6 +130,15 @@ L.VIEW_MODE_GUILD = "Every character and the guild"
 L.ROWS = "Bars"
 L.EDIT_MODE_HINT = "Move the window, and set its size and opacity, in the game's Edit Mode (Esc > Edit Mode). Its dialog there has the Text settings below too."
 -- Settings window: the item tooltip's box.
+-- Settings window: the box for OAP Debug (a debug window addon; its name stays as it is).
+L.DEBUG = "OAP Debug"
+L.DEBUG_LEVEL = "What goes to OAP Debug"
+L.DEBUG_DESC = "Log lines and counts for OAP Debug's window (/oapd): loot events, catches, sessions, the guild."
+L.DEBUG_MISSING = "OAP Debug is not installed, so nothing is sent."
+L.DEBUG_ERRORS = "Errors only"
+L.DEBUG_NORMAL = "Normal"
+L.DEBUG_METRICS = "Normal and counts"
+L.DEBUG_DETAILED = "Detailed (every loot event)"
 -- Settings window: the guild box.
 L.GUILD = "Guild"
 L.SHARE = "Share catches with the guild"

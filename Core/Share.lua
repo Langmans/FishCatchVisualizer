@@ -131,6 +131,12 @@ function Addon:SendSnapshot()
         nil,
         "BULK"
     )
+    local characters = 0
+    for _ in pairs(self.db.global.chars) do
+        characters = characters + 1
+    end
+    self:Log("info", "guild: counts sent, {1} characters", characters)
+    self:Count("guild snapshots sent")
 end
 
 local function AnswerHello()
@@ -151,19 +157,27 @@ function Addon:OnCommReceived(prefix, message, channel, sender)
         C_Timer.After(math.random(ANSWER_MIN, ANSWER_MAX), AnswerHello)
     elseif kind == SNAPSHOT then
         local id, zones = self.DecodeSnapshot(message:sub(2))
-        if not id or id == self:ShareId() then return end
+        if not id then
+            self:Log("warn", "guild: counts from {1} dropped", sender)
+            return
+        end
+        if id == self:ShareId() then return end
         self.db.global.guild[id] = {
             name = sender,
             zones = zones --[[@as AddonZones]],
             t = GetServerTime(),
         }
+        self:Log("info", "guild: counts from {1} kept", sender)
+        self:Count("guild snapshots received")
         self:LogChanged()
         self:UpdateCatchWindow()
     end
 end
 
 local function SayHello()
-    if Sharing() then Addon:SendCommMessage(Addon.COMM_PREFIX, HELLO, CHANNEL) end
+    if not Sharing() then return end
+    Addon:SendCommMessage(Addon.COMM_PREFIX, HELLO, CHANNEL)
+    Addon:Log("info", "guild: hello sent")
 end
 
 ---Listens to the guild, and says hello once the client has settled after login.

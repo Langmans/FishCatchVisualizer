@@ -53,6 +53,7 @@ function Addon:StartSession()
     if latest and now - latest.last <= SESSION_GAP then
         latest.last = now
         self.session = latest
+        self:Log("info", "session goes on")
         return latest
     end
     local sessions = self.db.global.sessions
@@ -68,6 +69,7 @@ function Addon:StartSession()
         table.remove(sessions, 1)
     end
     self.session = session
+    self:Log("info", "session started")
     return session
 end
 
@@ -77,6 +79,7 @@ function Addon:EndSession()
     if not session then return end
     session.last = GetServerTime()
     self.session = nil
+    self:Log("info", "session ended after {1} catches", session.catches or 0)
 end
 
 ---Per item ID: the places it was caught, best share first, or false when it never was. Filled by
