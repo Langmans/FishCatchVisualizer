@@ -74,7 +74,7 @@ end
 
 ---A colour picker for a profile colour.
 ---@param name string
----@param key "titleColor"|"textColor"|"shadowColor"
+---@param key AddonColorKey
 ---@param order number
 ---@param hasAlpha boolean?
 ---@return table
@@ -143,6 +143,15 @@ local function MediaOption(name, key, mediaType, order)
     return option
 end
 
+---A tick box for an appearance field.
+---@param name string
+---@param order number
+---@param desc string?
+---@return table
+local function AppearanceToggle(name, order, desc)
+    return Setting({ type = "toggle", name = name, desc = desc, order = order }, "AppearanceChanged")
+end
+
 ---The Text and bars box: the same profile fields as the windows' Edit Mode dialogs.
 ---@return table
 local function AppearanceOptions()
@@ -153,7 +162,27 @@ local function AppearanceOptions()
         order = 10,
         args = {
             font = MediaOption(L.FONT, "font", "font", 1),
-            barTexture = MediaOption(L.BAR_TEXTURE, "barTexture", "statusbar", 12),
+            bars = { type = "header", name = L.BARS, order = 12 },
+            barTexture = MediaOption(L.BAR_TEXTURE, "barTexture", "statusbar", 13),
+            barColor = ColorOption(L.BAR_COLOR, "barColor", 14),
+            barByShare = AppearanceToggle(L.BAR_BY_SHARE, 15, L.BAR_BY_SHARE_DESC),
+            barCustomBackdrop = AppearanceToggle(L.BAR_CUSTOM_BACKDROP, 16, L.BAR_CUSTOM_BACKDROP_DESC),
+            barBackground = ColorOption(L.BAR_BACKGROUND, "barBackground", 17),
+            barMultiplier = Setting({
+                type = "range",
+                name = L.BAR_MULTIPLIER,
+                desc = L.BAR_MULTIPLIER_DESC,
+                order = 18,
+                min = 0,
+                max = 1,
+                step = 0.01,
+                bigStep = 0.05,
+                isPercent = true,
+            }, "AppearanceChanged"),
+            barTransparent = AppearanceToggle(L.BAR_TRANSPARENT, 19, L.BAR_TRANSPARENT_DESC),
+            barInvert = AppearanceToggle(L.BAR_INVERT, 20, L.BAR_INVERT_DESC),
+            barReverseFill = AppearanceToggle(L.BAR_REVERSE_FILL, 21),
+            barSmooth = AppearanceToggle(L.BAR_SMOOTH, 22, L.BAR_SMOOTH_DESC),
             fontSize = Setting({
                 type = "range",
                 name = L.FONT_SIZE,

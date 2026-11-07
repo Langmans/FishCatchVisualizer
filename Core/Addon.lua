@@ -67,6 +67,17 @@ local DEFAULTS = {
         titleColor = { r = 1, g = 0.82, b = 0 },
         textColor = { r = 1, g = 1, b = 1 },
         qualityColors = true,
+        -- The bars, after ElvUI's unit frame health bar: light blue on a half-dark background,
+        -- which stands out on water and grass alike.
+        barColor = { r = 0.3, g = 0.7, b = 1 },
+        barByShare = false,
+        barCustomBackdrop = true,
+        barBackground = { r = 0, g = 0, b = 0 },
+        barMultiplier = 0.5,
+        barTransparent = false,
+        barInvert = false,
+        barReverseFill = false,
+        barSmooth = false,
         -- How much goes to OAP Debug when it is installed (Core\Debug.lua).
         oapDebug = "metrics",
         -- Per Edit Mode layout, per window: where it sits and its look (Core\Window.lua).

@@ -143,6 +143,109 @@ describe("the windows' appearance", function()
         assert.are.equal("Interface\\TargetingFrame\\UI-StatusBar", window.rows[1].bar.barTexture)
     end)
 
+    -- The bar options follow ElvUI's unit frame health bar, as far as they fit a list of catches.
+
+    it("draws the bars light blue on a half-dark background behind the whole bar", function()
+        local _, window = shown()
+        local row = window.rows[1]
+        assert.are.same({ 0.3, 0.7, 1, 1 }, row.bar.statusBarColor)
+        assert.are.same({ 0, 0, 0, 0.5 }, row.background.vertexColor)
+        assert.are.equal(row.bar.barTexture, row.background.texture)
+        assert.is_true(row.background.allPoints)
+        assert.is_falsy(row.bar.reverseFill)
+    end)
+
+    it("takes a bar colour, and a background of its own colour or the bar colour, at the multiplier", function()
+        local client, window = shown()
+        local row = window.rows[1]
+        setOption("barColor", 1, 0.5, 0)
+        setOption("barBackground", 0.1, 0.2, 0.3)
+        setOption("barMultiplier", 0.8)
+        assert.are.same({ 1, 0.5, 0, 1 }, row.bar.statusBarColor)
+        assert.are.same({ 0.1, 0.2, 0.3, 0.8 }, row.background.vertexColor)
+        setOption("barCustomBackdrop", false)
+        assert.are.same({ 1, 0.5, 0, 0.8 }, row.background.vertexColor)
+        client:catch(ITEMS.smallfish)
+        assert.are.same({ 1, 0.5, 0, 0.8 }, window.rows[2].background.vertexColor, "rows made later too")
+    end)
+
+    it("makes the bars flat and see-through, the background behind the empty part only", function()
+        local _, window = shown()
+        local row = window.rows[1]
+        setOption("barTransparent", true)
+        assert.are.equal("Interface\\Buttons\\WHITE8X8", row.bar.barTexture)
+        assert.are.equal("Interface\\Buttons\\WHITE8X8", row.background.texture)
+        -- As ElvUI: the bar at twice the multiplier, the background at half.
+        assert.are.same({ 0.3, 0.7, 1, 1 }, row.bar.statusBarColor)
+        assert.are.same({ 0, 0, 0, 0.25 }, row.background.vertexColor)
+        local fill = row.bar:GetStatusBarTexture()
+        assert.are.same({
+            { "TOPLEFT", fill, "TOPRIGHT" },
+            { "BOTTOMLEFT", fill, "BOTTOMRIGHT" },
+            { "BOTTOMRIGHT", row.bar, "BOTTOMRIGHT" },
+        }, row.background.points)
+        setOption("barReverseFill", true)
+        assert.is_true(row.bar.reverseFill)
+        assert.are.same({
+            { "TOPRIGHT", fill, "TOPLEFT" },
+            { "BOTTOMRIGHT", fill, "BOTTOMLEFT" },
+            { "BOTTOMLEFT", row.bar, "BOTTOMLEFT" },
+        }, row.background.points)
+        setOption("barTransparent", false)
+        assert.are.equal("Interface\\TargetingFrame\\UI-StatusBar", row.background.texture)
+        assert.is_true(row.background.allPoints)
+    end)
+
+    it("swaps the bar's and the background's colours when inverted", function()
+        local _, window = shown()
+        setOption("barInvert", true)
+        assert.are.same({ 0, 0, 0, 0.5 }, window.rows[1].bar.statusBarColor)
+        assert.are.same({ 0.3, 0.7, 1, 1 }, window.rows[1].background.vertexColor)
+    end)
+
+    it("colours by share: the most caught in the bar colour, through yellow toward red for rarer", function()
+        local client, window = shown()
+        client:catch(ITEMS.snapper, ITEMS.snapper, ITEMS.snapper, ITEMS.smallfish)
+        setOption("barByShare", true)
+        assert.are.same({ 0.3, 0.7, 1, 1 }, window.rows[1].bar.statusBarColor)
+        -- A quarter of the most caught's count: halfway from red to yellow.
+        assert.are.same({ 1, 0.5, 0, 1 }, window.rows[2].bar.statusBarColor)
+    end)
+
+    it("lets the bars glide to a new length when smooth", function()
+        local _, window = shown()
+        assert.is_nil(window.rows[1].bar.interpolation)
+        setOption("barSmooth", true)
+        assert.are.equal(Enum.StatusBarInterpolation.ExponentialEaseOut, window.rows[1].bar.interpolation)
+    end)
+
+    it("has the bar settings in the Edit Mode dialog too", function()
+        local client, window = shown()
+        local L, profile = client.Addon.L, client.Addon.db.profile
+        local function set(name, value)
+            client:editModeSetting(window.frame, name).set("Modern", value)
+        end
+        assert.is_falsy(client:editModeSetting(window.frame, L.BAR_COLOR).hasOpacity)
+        set(L.BAR_COLOR, CreateColor(0, 1, 0, 1))
+        set(L.BAR_BACKGROUND, CreateColor(1, 1, 1, 1))
+        set(L.BAR_MULTIPLIER, 0.2)
+        local row = window.rows[1]
+        assert.are.same({ 0, 1, 0, 1 }, row.bar.statusBarColor)
+        assert.are.same({ 1, 1, 1, 0.2 }, row.background.vertexColor)
+        set(L.BAR_CUSTOM_BACKDROP, false)
+        assert.are.same({ 0, 1, 0, 0.2 }, row.background.vertexColor)
+        for name, key in pairs({
+            [L.BAR_BY_SHARE] = "barByShare",
+            [L.BAR_TRANSPARENT] = "barTransparent",
+            [L.BAR_INVERT] = "barInvert",
+            [L.BAR_REVERSE_FILL] = "barReverseFill",
+            [L.BAR_SMOOTH] = "barSmooth",
+        }) do
+            set(name, true)
+            assert.is_true(profile[key], key)
+        end
+    end)
+
     it("waits for a saved bar texture an addon shares later", function()
         local saved = { profiles = { Default = { barTexture = "Late Bar" } } }
         local client = NewClient({ saved = saved }):login():equip(ITEMS.pole):catch(ITEMS.snapper)

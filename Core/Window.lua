@@ -22,8 +22,6 @@ local HEADER = 52
 local NOTE_HEIGHT = 14
 -- A button is as wide as its label plus this, so a bigger font never cuts a label off.
 local BUTTON_PAD, BUTTON_HEIGHT = 8, 14
--- The bars' texture before the appearance arrives (Core\Appearance.lua sets the profile's).
-local BAR_TEXTURE = "Interface\\TargetingFrame\\UI-StatusBar"
 local BACKDROP = { bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 }
 -- A window's place and look in a layout it has not been touched in.
 ---@type AddonWindowLook
@@ -172,8 +170,60 @@ function Window:ApplyAppearance(appearance)
     for _, row in ipairs(self.rows) do
         self:StyleText(row.left, nil, "textColor")
         self:StyleText(row.right, nil, "textColor")
-        row.bar:SetStatusBarTexture(appearance.barTexture)
+        self:StyleBar(row)
     end
+end
+
+---A colour from red through yellow to `color` as `share` goes from 0 to 1, as ElvUI's Health By
+---Value colours health.
+---@param share number
+---@param color AddonColor
+---@return number r, number g, number b
+local function ByShare(share, color)
+    if share < 0.5 then return 1, share * 2, 0 end
+    local t = (share - 0.5) * 2
+    return (1 - t) + color.r * t, (1 - t) + color.g * t, color.b * t
+end
+
+---Draws a row's bar and its background the appearance's way. A transparent bar's background
+---covers only the empty part, from the fill's edge to the bar's end.
+---@param row AddonBarRow
+function Window:StyleBar(row)
+    local look = self.appearance
+    if not look then return end
+    local bar, background = row.bar, row.background
+    bar:SetStatusBarTexture(look.barTexture)
+    bar:SetReverseFill(look.barReverseFill)
+    background:SetTexture(look.barTexture)
+    background:ClearAllPoints()
+    if look.barTransparent then
+        local fill = bar:GetStatusBarTexture()
+        local near, far = "LEFT", "RIGHT"
+        if look.barReverseFill then
+            near, far = far, near
+        end
+        background:SetPoint("TOP" .. near, fill, "TOP" .. far)
+        background:SetPoint("BOTTOM" .. near, fill, "BOTTOM" .. far)
+        background:SetPoint("BOTTOM" .. far, bar, "BOTTOM" .. far)
+    else
+        background:SetAllPoints()
+    end
+    local color = look.barColor
+    local r, g, b = color.r, color.g, color.b
+    if look.barByShare then
+        r, g, b = ByShare(row.value / self.topValue, color)
+    end
+    local backR, backG, backB = r, g, b
+    local custom = look.barBackground
+    if custom then
+        backR, backG, backB = custom.r, custom.g, custom.b
+    end
+    local alpha, backAlpha = look.barAlpha, look.backgroundAlpha
+    if look.barInvert then
+        r, g, b, alpha, backR, backG, backB, backAlpha = backR, backG, backB, backAlpha, r, g, b, alpha
+    end
+    bar:SetStatusBarColor(r, g, b, alpha)
+    background:SetVertexColor(backR, backG, backB, backAlpha)
 end
 
 ---Adds a button to the row under the subtitle, each next to the one before.
@@ -219,7 +269,8 @@ function Window:SetTitle(title, subtitle)
     self.subtitle:SetText(subtitle)
 end
 
----Fills row i, made on first use: the bar at `value` (0 to 1) in the window's colour.
+---Fills row i, made on first use: the bar at `value` (0 to 1). Rows come most caught first, so
+---row 1's value is the top that the colours by share are measured against.
 ---@param i number
 ---@param left string
 ---@param right string
@@ -228,14 +279,11 @@ function Window:FillRow(i, left, right, value)
     local row = self.rows[i]
     if not row then
         local bar = CreateFrame("StatusBar", nil, self.frame)
-        bar:SetStatusBarTexture(self.appearance and self.appearance.barTexture or BAR_TEXTURE)
         bar:SetMinMaxValues(0, 1)
         bar:SetHeight(ROW_HEIGHT)
         bar:SetPoint("TOPLEFT", PAD, -(HEADER + (i - 1) * (ROW_HEIGHT + ROW_GAP)))
         bar:SetPoint("RIGHT", -PAD, 0)
         local background = bar:CreateTexture(nil, "BACKGROUND")
-        background:SetAllPoints()
-        background:SetColorTexture(1, 1, 1, 0.06)
         local leftText = Text(bar, "GameFontHighlightSmall")
         leftText:SetPoint("LEFT", 4, 0)
         local rightText = Text(bar, "GameFontHighlightSmall")
@@ -244,12 +292,14 @@ function Window:FillRow(i, left, right, value)
         leftText:SetPoint("RIGHT", rightText, "LEFT", -4, 0)
         self:StyleText(leftText, nil, "textColor")
         self:StyleText(rightText, nil, "textColor")
-        row = { bar = bar, left = leftText, right = rightText }
+        row = { bar = bar, background = background, left = leftText, right = rightText, value = value }
         self.rows[i] = row
     end
-    local color = self.color
-    row.bar:SetStatusBarColor(color[1], color[2], color[3])
-    row.bar:SetValue(value)
+    if i == 1 then self.topValue = value end
+    row.value = value
+    self:StyleBar(row)
+    local look = self.appearance
+    row.bar:SetValue(value, look and look.barInterpolation)
     row.left:SetText(left)
     row.right:SetText(right)
 end
@@ -283,12 +333,11 @@ function Window:ShowRows(count, empty, more)
 end
 
 ---A new, hidden window. `key` names it in the saved layouts and, capitalised, its frame
----("<NAME>CatchesWindow"); `name` names it in Edit Mode; `color` is its bars' { r, g, b }.
+---("<NAME>CatchesWindow"); `name` names it in Edit Mode.
 ---@param key string
 ---@param name string
----@param color number[]
 ---@return AddonWindow
-function Addon.NewBarWindow(key, name, color)
+function Addon.NewBarWindow(key, name)
     local frameName = Addon.Global(key:sub(1, 1):upper() .. key:sub(2) .. "Window")
     local frame = CreateFrame("Frame", frameName, UIParent, "BackdropTemplate")
     frame:SetSize(WIDTH, HEADER + PAD)
@@ -297,7 +346,7 @@ function Addon.NewBarWindow(key, name, color)
     frame:SetBackdrop(BACKDROP)
     frame:EnableMouse(false)
     frame:Hide()
-    local window = setmetatable({ key = key, frame = frame, color = color, rows = {}, buttons = {} }, Window) --[[@as AddonWindow]]
+    local window = setmetatable({ key = key, frame = frame, rows = {}, buttons = {} }, Window) --[[@as AddonWindow]]
     window.title = Text(frame, "GameFontNormal")
     window.title:SetPoint("TOPLEFT", PAD, -6)
     window.title:SetPoint("RIGHT", -PAD, 0)

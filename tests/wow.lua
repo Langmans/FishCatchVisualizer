@@ -218,6 +218,7 @@ function NewClient(opts)
         ItemWeaponSubclass = { Sword1H = 7, Fishingpole = 20 },
         TooltipDataType = { Item = 0, Spell = 1 },
         SendAddonMessageResult = { Success = 0, AddonMessageThrottle = 3, NotInGuild = 10, AddOnMessageLockdown = 11 },
+        StatusBarInterpolation = { Immediate = 0, ExponentialEaseOut = 1 },
     }
     INVSLOT_MAINHAND = 16
 
@@ -578,7 +579,7 @@ function NewClient(opts)
         self.points[#self.points + 1] = { point, relativeTo, relativePoint, x, y }
     end
     function Region:ClearAllPoints()
-        self.points = {}
+        self.points, self.allPoints = {}, false
     end
     function Region:GetPoint(index)
         local p = self.points and self.points[index or 1]
@@ -637,12 +638,30 @@ function NewClient(opts)
     function Region:SetTexture(texture)
         self.texture = texture
     end
-    -- A status bar's value and texture, as the bar rows fill them.
-    function Region:SetValue(value)
-        self.value = value
+    -- A status bar's value (and how it gets there), texture, colour and fill direction, as the bar
+    -- rows set them. Its fill texture is one region, made on first ask.
+    function Region:SetValue(value, interpolation)
+        self.value, self.interpolation = value, interpolation
     end
     function Region:SetStatusBarTexture(texture)
         self.barTexture = texture
+    end
+    function Region:SetStatusBarColor(r, g, b, a)
+        self.statusBarColor = { r, g, b, a }
+    end
+    function Region:SetReverseFill(on)
+        self.reverseFill = on
+    end
+    function Region:GetStatusBarTexture()
+        self.fill = self.fill or self:CreateTexture()
+        return self.fill
+    end
+    -- A texture's tint, and whether it covers its parent (cleared by ClearAllPoints).
+    function Region:SetVertexColor(r, g, b, a)
+        self.vertexColor = { r, g, b, a }
+    end
+    function Region:SetAllPoints()
+        self.allPoints = true
     end
     local function newRegion(fields)
         fields = fields or {}

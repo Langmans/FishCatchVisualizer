@@ -15,7 +15,7 @@
 ---@field ZoneName fun(mapID: number): string
 ---@field AreaName fun(mapID: number, area: AddonArea): string
 ---@field PlaceName fun(mapID: number, area: AddonArea): string
----@field NewBarWindow fun(key: string, name: string, color: number[]): AddonWindow
+---@field NewBarWindow fun(key: string, name: string): AddonWindow
 ---@field catchWindow AddonWindow
 ---@field daytimes { day: string, night: string }
 ---@field SEASON_ORDER string[]
@@ -49,7 +49,7 @@
 ---@field MAX_FONT_SIZE number
 ---@field MAX_SHADOW_OFFSET number the shadow's offset either way
 ---@field AppearanceChanged fun(self: Addon)
----@field SetAppearanceColor fun(self: Addon, key: "titleColor"|"textColor"|"shadowColor", r: number, g: number, b: number, a: number?)
+---@field SetAppearanceColor fun(self: Addon, key: AddonColorKey, r: number, g: number, b: number, a: number?)
 ---@field AppearanceSettings fun(): LibEditModeSetting[] a window's Edit Mode appearance settings, new tables
 ---@field ApplyAppearance fun(self: Addon)
 ---@field Appearance fun(self: Addon): AddonAppearance
@@ -137,6 +137,15 @@
 ---@field titleColor AddonColor
 ---@field textColor AddonColor
 ---@field qualityColors boolean item names in their quality's colour
+---@field barColor AddonColor
+---@field barByShare boolean colour each bar by its count against the most caught's
+---@field barCustomBackdrop boolean the background in barBackground; off: in the bar's colour
+---@field barBackground AddonColor
+---@field barMultiplier number the background's opacity, 0 to 1
+---@field barTransparent boolean flat see-through bars, the background behind the empty part only
+---@field barInvert boolean the bar's and the background's colours swapped
+---@field barReverseFill boolean the bars fill from the right
+---@field barSmooth boolean the bars glide to a new length
 ---@field layouts table<string, table<string, AddonWindowLayout>> per Edit Mode layout, per window key
 
 ---A window's place and look, every field set: Window.lua's defaults.
@@ -239,7 +248,7 @@
 ---@class AddonWindow
 ---@field key string its key in the saved layouts
 ---@field frame BackdropTemplate|Frame
----@field color number[] its bars' { r, g, b }
+---@field topValue? number the first row's value, the most caught's share
 ---@field title FontString
 ---@field subtitle FontString
 ---@field empty FontString the note when there is nothing
@@ -253,7 +262,16 @@
 ---What the windows draw with (Core\Appearance.lua Appearance; one shared table).
 ---@class AddonAppearance
 ---@field path string the font's file
----@field barTexture string the bars' texture file
+---@field barTexture string the bars' texture file, a flat one for transparent bars
+---@field barColor AddonColor
+---@field barBackground? AddonColor the custom background colour; none: the bar's colour
+---@field barAlpha number
+---@field backgroundAlpha number
+---@field barByShare boolean
+---@field barTransparent boolean
+---@field barInvert boolean
+---@field barReverseFill boolean
+---@field barInterpolation? number how SetValue moves the bar: an Enum.StatusBarInterpolation value
 ---@field size number
 ---@field flags string SetFont's flags: "OUTLINE, SLUG" and the like
 ---@field shadowX number 0 without shadow
@@ -261,6 +279,9 @@
 ---@field shadowColor AddonColor
 ---@field titleColor AddonColor
 ---@field textColor AddonColor
+
+---The profile's colour fields.
+---@alias AddonColorKey "titleColor"|"textColor"|"shadowColor"|"barColor"|"barBackground"
 
 ---A colour as the profile keeps it; a has a value only where opacity can be set.
 ---@class AddonColor
@@ -272,6 +293,8 @@
 ---A window's bar row.
 ---@class AddonBarRow
 ---@field bar StatusBar
+---@field background Texture
+---@field value number the bar's value, 0 to 1
 ---@field left FontString
 ---@field right FontString
 

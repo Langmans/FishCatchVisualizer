@@ -28,8 +28,14 @@ opacity.
 **Text:** any font LibSharedMedia knows (ElvUI's and SharedMedia's too), a size, an outline
 (none, thin, thick), high quality Slug rendering on top of any outline, a title and a text colour
 (gold and pure white), items in their quality's colour, a shadow with its own colour and x/y
-offset (fractions too), and the bars' texture (any statusbar LibSharedMedia knows). The same
-settings are in the options and in the window's Edit Mode dialog.
+offset (fractions too). The same settings are in the options and in the window's Edit Mode dialog.
+
+**Bars**, after ElvUI's unit frame health bar as far as its options fit a list of catches: a
+texture (any statusbar LibSharedMedia knows), a colour (light blue), colour by share (ElvUI's
+Health By Value: the most caught in the bar colour, half as many yellow, rarer toward red), a
+background in its own colour (black by default) or the bar's, its strength (the multiplier, 0.5),
+transparent bars, inverted colours, reverse fill and smooth bars. ElvUI's class, reaction, dead
+and health-break backdrops have no counterpart here: there is no unit.
 
 ## Commands
 
@@ -112,7 +118,7 @@ an ID keeps its text as key; no subzone at all is area `0`, the zone itself.
 | `Core\Broker.lua` | the data broker object (LibDataBroker-1.1) |
 | `Core\Share.lua` | swapping counts with the guild (AceComm) |
 | `Core\Detect.lua` | the fishing pole and fishing loot |
-| `Core\Appearance.lua` | the windows' font, outline, Slug, colours, shadow and bar texture (LibSharedMedia) |
+| `Core\Appearance.lua` | the windows' font, outline, Slug, colours, shadow and bars (LibSharedMedia, ElvUI-style bar options) |
 | `Core\Window.lua` | the bar list window and its Edit Mode hookup (LibEditMode) |
 | `Core\CatchWindow.lua` | the catch window's content |
 | `Core\Tooltip.lua` | the item tooltip lines (`TooltipDataProcessor`) |
@@ -174,6 +180,16 @@ window's Edit Mode dialog read and write these same fields (Edit Mode's colour p
 ColorMixins; its sliders have no typed input, so the offsets go in half pixels there and in tenths
 in the options' slider box), and a font an addon registers later (`LibSharedMedia_Registered`) is
 applied when it arrives.
+
+The bars (`Window:StyleBar`) work as ElvUI's `UF:SetStatusBarColor`: the bar in `barColor` (or
+the by-share colour, against row 1, which is the most caught) at full opacity; the background
+texture is the bar's texture, tinted `barBackground` when `barCustomBackdrop` is on, else the
+bar's own colour, at `barMultiplier` opacity. `barTransparent` swaps the texture for a flat one,
+puts the bar at twice the multiplier and the background at half, and anchors the background to
+the fill's edge so it covers only the empty part. `barInvert` swaps the two colours,
+`barReverseFill` is `SetReverseFill`, and `barSmooth` passes
+`Enum.StatusBarInterpolation.ExponentialEaseOut` to `SetValue` (nothing on a client without that
+enum).
 
 ## Development
 

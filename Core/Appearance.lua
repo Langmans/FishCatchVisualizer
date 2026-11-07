@@ -2,9 +2,12 @@ local _, ns = ...
 
 -- The windows' appearance: a font from LibSharedMedia (so ElvUI's and SharedMedia's fonts are
 -- there), a size, an outline, Slug rendering, a shadow (colour and x/y offset), the title's and the
--- other text's colours, items in their quality's colour, and the bars' texture (LibSharedMedia's
--- statusbars). One set per profile, changed in the options or in any window's Edit Mode dialog;
--- both read and write the same profile fields.
+-- other text's colours, items in their quality's colour, and the bars. The bars take what fits a
+-- list of catches from ElvUI's unit frame health bar: a texture (LibSharedMedia's statusbars), a
+-- colour or a colour by share (ElvUI's Health By Value), a background in its own colour or the
+-- bar's at the multiplier's opacity, transparent, inverted, reverse fill and smooth. One set per
+-- profile, changed in the options or in any window's Edit Mode dialog; both read and write the
+-- same profile fields.
 
 ---@type Addon
 local Addon = ns
@@ -23,6 +26,13 @@ Addon.MIN_FONT_SIZE, Addon.MAX_FONT_SIZE = 8, 24
 Addon.MAX_SHADOW_OFFSET = 4
 -- Edit Mode has sliders only, in half pixels; the options' slider also takes a typed number.
 local EDIT_MODE_OFFSET_STEP = 0.5
+
+-- Transparent bars are flat, as ElvUI's.
+local FLAT_TEXTURE = "Interface\\Buttons\\WHITE8X8"
+-- How smooth bars move; nil on a client whose status bars cannot glide.
+local SMOOTH = Enum.StatusBarInterpolation and Enum.StatusBarInterpolation.ExponentialEaseOut
+-- The multiplier slider's step in Edit Mode.
+local MULTIPLIER_STEP = 0.05
 
 -- The profile fields that name LibSharedMedia media, and the media type of each.
 local MEDIA_TYPES = { font = "font", barTexture = "statusbar" }
@@ -47,12 +57,21 @@ function Addon:Appearance()
     if profile.slug then flags = flags == "" and SLUG or (flags .. ", " .. SLUG) end
     -- An unknown name gives the default's file.
     appearance.path = LSM:Fetch("font", MediaName("font")) --[[@as string]]
-    appearance.barTexture = LSM:Fetch("statusbar", MediaName("barTexture")) --[[@as string]]
     appearance.size, appearance.flags = profile.fontSize, flags
     appearance.shadowX = profile.shadow and profile.shadowX or 0
     appearance.shadowY = profile.shadow and profile.shadowY or 0
     appearance.shadowColor = profile.shadowColor
     appearance.titleColor, appearance.textColor = profile.titleColor, profile.textColor
+    local transparent, multiplier = profile.barTransparent, profile.barMultiplier
+    appearance.barTexture = transparent and FLAT_TEXTURE or LSM:Fetch("statusbar", MediaName("barTexture")) --[[@as string]]
+    appearance.barColor = profile.barColor
+    appearance.barBackground = profile.barCustomBackdrop and profile.barBackground or nil
+    -- As ElvUI: a transparent bar at twice the multiplier, its background at half.
+    appearance.barAlpha = transparent and math.min(multiplier * 2, 1) or 1
+    appearance.backgroundAlpha = transparent and multiplier / 2 or multiplier
+    appearance.barByShare, appearance.barTransparent = profile.barByShare, transparent
+    appearance.barInvert, appearance.barReverseFill = profile.barInvert, profile.barReverseFill
+    appearance.barInterpolation = profile.barSmooth and SMOOTH or nil
     return appearance
 end
 
@@ -79,7 +98,7 @@ function Addon:SetAppearanceSetting(key, value)
 end
 
 ---Sets a colour field of the profile and shows it; `a` only for a colour with opacity.
----@param key "titleColor"|"textColor"|"shadowColor"
+---@param key AddonColorKey
 ---@param r number
 ---@param g number
 ---@param b number
@@ -140,7 +159,7 @@ end
 
 ---An Edit Mode colour picker for a profile colour; LibEditMode hands colours over as ColorMixins.
 ---@param name string
----@param key "titleColor"|"textColor"|"shadowColor"
+---@param key AddonColorKey
 ---@param hasOpacity boolean?
 ---@return LibEditModeSetting
 local function ColorSetting(name, key, hasOpacity)
@@ -198,6 +217,19 @@ function Addon.AppearanceSettings()
         OffsetSetting(L.SHADOW_X, "shadowX"),
         OffsetSetting(L.SHADOW_Y, "shadowY"),
         Setting(types.Dropdown, L.BAR_TEXTURE, "barTexture", { values = MediaValues("statusbar") }),
+        ColorSetting(L.BAR_COLOR, "barColor"),
+        Setting(types.Checkbox, L.BAR_BY_SHARE, "barByShare"),
+        Setting(types.Checkbox, L.BAR_CUSTOM_BACKDROP, "barCustomBackdrop"),
+        ColorSetting(L.BAR_BACKGROUND, "barBackground"),
+        Setting(types.Slider, L.BAR_MULTIPLIER, "barMultiplier", {
+            minValue = 0,
+            maxValue = 1,
+            valueStep = MULTIPLIER_STEP,
+        }),
+        Setting(types.Checkbox, L.BAR_TRANSPARENT, "barTransparent"),
+        Setting(types.Checkbox, L.BAR_INVERT, "barInvert"),
+        Setting(types.Checkbox, L.BAR_REVERSE_FILL, "barReverseFill"),
+        Setting(types.Checkbox, L.BAR_SMOOTH, "barSmooth"),
     }
 end
 

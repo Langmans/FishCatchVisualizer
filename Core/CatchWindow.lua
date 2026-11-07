@@ -10,7 +10,7 @@ local L = Addon.L
 -- The icon for an item the client has none for yet: the question mark.
 local UNKNOWN_ICON = 134400
 
-local window = Addon.NewBarWindow("catches", L.WINDOW_CATCHES, { 0.18, 0.44, 0.56 })
+local window = Addon.NewBarWindow("catches", L.WINDOW_CATCHES)
 Addon.catchWindow = window
 
 for _, view in ipairs(Addon.VIEW_ORDER) do
