@@ -11,7 +11,12 @@ character and per fishing session.
 - **Subzone or whole zone.** The window covers the subzone you stand in, or the whole zone.
 
 Move the window, and set its size and opacity, in the game's **Edit Mode** (Esc > Edit Mode).
-Each Edit Mode layout keeps its own spot.
+Each Edit Mode layout keeps its own spot. Its background is see-through until you raise the
+opacity.
+
+**Text:** any font LibSharedMedia knows (ElvUI's and SharedMedia's too), a size, an outline
+(none, thin, thick), high quality Slug rendering on top of any outline, and a shadow. The same
+settings are in the options and in the window's Edit Mode dialog.
 
 ## Commands
 
@@ -60,6 +65,7 @@ an ID keeps its text as key; no subzone at all is area `0`, the zone itself.
 | `Core\Place.lua` | map and area key of where the player stands, place names |
 | `Core\Log.lua` | recording catches, sessions, counts at a place, an item's places |
 | `Core\Detect.lua` | the fishing pole and fishing loot |
+| `Core\Text.lua` | the windows' font, outline, Slug and shadow (LibSharedMedia) |
 | `Core\Window.lua` | the bar list window and its Edit Mode hookup (LibEditMode) |
 | `Core\CatchWindow.lua` | the catch window's content |
 | `Core\Tooltip.lua` | the item tooltip lines (`TooltipDataProcessor`) |
@@ -92,8 +98,17 @@ By hand: the folder and the repository, the `.toc`'s file name, `## Title` and
 A player's saved data stays under the old `<NAME>DB`: copy `WTF\Account\<account>\SavedVariables\<Old>.lua`
 to `<New>.lua` and rename the table inside.
 
-Libraries come from the `.pkgmeta` externals: Ace3 (pinned commit, as in BattleCry) and
-LibEditMode (tag 19, the first with interface 16001).
+Libraries come from the `.pkgmeta` externals: Ace3 (pinned commit, as in BattleCry),
+LibEditMode (tag 19, the first with interface 16001) and LibSharedMedia-3.0 (svn tag v12.1.3).
+
+### Text
+
+`Core\Text.lua`: profile fields `font` (a LibSharedMedia name; none means its default),
+`fontSize`, `outline` (`Addon.outlines`: none, thin = `OUTLINE`, thick = `THICKOUTLINE`), `slug`
+and `shadow`. The SetFont flags are the outline's plus `SLUG`, comma-separated
+(`"OUTLINE, SLUG"`); the title is two points larger; the shadow is an offset of (1, -1). Both the
+options and every window's Edit Mode dialog read and write these same fields, and a font an addon
+registers later (`LibSharedMedia_Registered`) is applied when it arrives.
 
 ## Development
 

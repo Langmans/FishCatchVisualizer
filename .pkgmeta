@@ -50,6 +50,12 @@ externals:
   Libs/LibEditMode:
     url: https://github.com/p3lim-wow/LibEditMode.git
     commit: b4816be444fec1160eac31d9a841f74636898acc
+  # The fonts other addons share (ElvUI, SharedMedia); it lives only in CurseForge's svn, pinned
+  # to a tag.
+  Libs/LibSharedMedia-3.0:
+    url: https://repos.curseforge.com/wow/libsharedmedia-3-0/trunk/LibSharedMedia-3.0
+    tag: v12.1.3
+    type: svn
 
 # Release notes come from this file instead of the commit log.
 manual-changelog:

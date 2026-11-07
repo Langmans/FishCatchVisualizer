@@ -6,5 +6,7 @@
 - Catch window while a fishing pole is in hand: bars per item with count and share, for this
   session, this character or all characters; the subzone or the whole zone.
 - Item tooltip: where the item was caught, best share first.
-- Window position, size and opacity in Edit Mode, per layout.
+- Window position, size and opacity in Edit Mode, per layout; see-through by default.
+- Text settings in the options and in Edit Mode: any LibSharedMedia font, size, outline, high
+  quality (Slug) rendering and shadow.
 - `/fcv` commands and options in the game's AddOns settings.

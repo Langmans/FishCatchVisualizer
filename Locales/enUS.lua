@@ -32,6 +32,17 @@ L.BUTTON_ACCOUNT = "All"
 -- Edit Mode, a window's dialog: its sliders.
 L.SCALE = "Size"
 L.OPACITY = "Background opacity"
+-- Edit Mode dialog and settings window, the Text box: the windows' text, the same in both.
+L.TEXT = "Text"
+L.FONT = "Font"
+L.FONT_SIZE = "Text size"
+L.OUTLINE = "Outline"
+L.OUTLINE_NONE = "None"
+L.OUTLINE_THIN = "Thin"
+L.OUTLINE_THICK = "Thick"
+L.SLUG = "High quality text"
+L.SLUG_DESC = "Draws the text with the game's Slug renderer: sharp at any size, also with an outline."
+L.SHADOW = "Text shadow"
 
 -- The item tooltip: above the places an item was caught.
 L.TOOLTIP_TITLE = "Caught at"
@@ -72,7 +83,7 @@ L.VIEW_MODE_SESSION = "This fishing session"
 L.VIEW_MODE_CHAR = "This character"
 L.VIEW_MODE_ACCOUNT = "Every character"
 L.ROWS = "Bars"
-L.EDIT_MODE_HINT = "Move the window, and set its size and opacity, in the game's Edit Mode (Esc > Edit Mode)."
+L.EDIT_MODE_HINT = "Move the window, and set its size and opacity, in the game's Edit Mode (Esc > Edit Mode). Its dialog there has the Text settings below too."
 -- Settings window: the item tooltip's box.
 L.TOOLTIP = "Item tooltip"
 L.TOOLTIP_ENABLE = "Show where an item was caught"

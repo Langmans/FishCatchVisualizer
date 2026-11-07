@@ -276,6 +276,25 @@ function NewClient(opts)
         return entry.icon, entry.name, entry.quantity
     end
 
+    -- Every file a font or texture names is known to this client.
+    C_UIFileAsset = {
+        IsKnownFile = function()
+            return true
+        end,
+    }
+
+    -- The client's bit library (LibSharedMedia masks locales with it); plain Lua 5.1 has none.
+    bit = {
+        band = function(a, b)
+            local result, place = 0, 1
+            while a > 0 and b > 0 do
+                if a % 2 == 1 and b % 2 == 1 then result = result + place end
+                a, b, place = math.floor(a / 2), math.floor(b / 2), place * 2
+            end
+            return result
+        end,
+    }
+
     -- WoW's string and table shorthands.
     strmatch, strfind, strsub, strlower, strupper, strlen, format, gsub =
         string.match, string.find, string.sub, string.lower, string.upper, string.len, string.format, string.gsub
@@ -460,6 +479,14 @@ function NewClient(opts)
     end
     function Region:SetTextColor(r, g, b)
         self.textColor = { r, g, b }
+    end
+    -- A font string's font: { path, size, flags }, and its shadow offset { x, y }.
+    function Region:SetFont(path, size, flags)
+        self.font = { path, size, flags }
+        return true
+    end
+    function Region:SetShadowOffset(x, y)
+        self.shadowOffset = { x, y }
     end
     function Region:SetTexture(texture)
         self.texture = texture

@@ -6,7 +6,8 @@ local _, ns = ...
 --
 -- Position, scale and opacity live in Blizzard's Edit Mode through LibEditMode, per Edit Mode
 -- layout: profile.layouts[layout name][window key] = { point, x, y, scale, alpha }, every field
--- falling back to DEFAULTS.
+-- falling back to DEFAULTS. The background is see-through by default, as Fishbringer's. The text
+-- settings in the same dialog are the profile's (Core\Text.lua).
 
 ---@type Addon
 local Addon = ns
@@ -24,11 +25,14 @@ local BAR_TEXTURE = "Interface\\TargetingFrame\\UI-StatusBar"
 local BACKDROP = { bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 }
 -- A window's place and look in a layout it has not been touched in.
 ---@type AddonWindowLook
-local DEFAULTS = { point = "RIGHT", x = -60, y = 120, scale = 1, alpha = 0.6 }
+local DEFAULTS = { point = "RIGHT", x = -60, y = 120, scale = 1, alpha = 0 }
+-- How much larger than the other text the title is.
+local TITLE_LARGER = 2
 
----Every window made, so a new Edit Mode layout reaches them all.
+---Every window made, so a new Edit Mode layout and a text change reach them all.
 ---@type AddonWindow[]
 local windows = {}
+Addon.windows = windows
 
 ---@class AddonWindow
 local Window = {}
@@ -133,6 +137,40 @@ function Window:Slider(name, field, min, max)
     }
 end
 
+---Gives a font string the window's text, `larger` points above its size. Before the first
+---ApplyFont the template's font stays.
+---@param text FontString
+---@param larger number?
+function Window:StyleText(text, larger)
+    if not self.fontPath then return end
+    text:SetFont(self.fontPath, self.fontSize + (larger or 0), self.fontFlags)
+    if self.fontShadow then
+        text:SetShadowOffset(1, -1)
+    else
+        text:SetShadowOffset(0, 0)
+    end
+end
+
+---The text for every font string the window has, and for those it makes later.
+---@param path string
+---@param size number
+---@param flags string
+---@param shadow boolean
+function Window:ApplyFont(path, size, flags, shadow)
+    self.fontPath, self.fontSize, self.fontFlags, self.fontShadow = path, size, flags, shadow
+    self:StyleText(self.title, TITLE_LARGER)
+    self:StyleText(self.subtitle)
+    self:StyleText(self.empty)
+    self:StyleText(self.more)
+    for _, button in pairs(self.buttons) do
+        self:StyleText(button.label)
+    end
+    for _, row in ipairs(self.rows) do
+        self:StyleText(row.left)
+        self:StyleText(row.right)
+    end
+end
+
 ---Adds a button to the row under the subtitle, each next to the one before.
 ---@param key string
 ---@param label string
@@ -143,6 +181,7 @@ function Window:AddButton(key, label, onClick)
     local text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     text:SetAllPoints()
     text:SetText(label)
+    self:StyleText(text)
     button.label = text
     button:SetScript("OnClick", onClick)
     local previous = self.buttons[self.lastButton]
@@ -198,6 +237,8 @@ function Window:FillRow(i, left, right, value)
         rightText:SetPoint("RIGHT", -4, 0)
         rightText:SetJustifyH("RIGHT")
         leftText:SetPoint("RIGHT", rightText, "LEFT", -4, 0)
+        self:StyleText(leftText)
+        self:StyleText(rightText)
         row = { bar = bar, left = leftText, right = rightText }
         self.rows[i] = row
     end
@@ -270,10 +311,11 @@ function Addon.NewBarWindow(key, name, color)
         window:SavePosition(layoutName, point, x, y)
     end
     LEM:AddFrame(frame, OnMoved, { point = DEFAULTS.point, x = DEFAULTS.x, y = DEFAULTS.y }, name)
-    LEM:AddFrameSettings(frame, {
-        window:Slider(L.SCALE, "scale", 0.5, 2),
-        window:Slider(L.OPACITY, "alpha", 0, 1),
-    })
+    local settings = { window:Slider(L.SCALE, "scale", 0.5, 2), window:Slider(L.OPACITY, "alpha", 0, 1) }
+    for _, setting in ipairs(Addon.TextSettings()) do
+        settings[#settings + 1] = setting
+    end
+    LEM:AddFrameSettings(frame, settings)
     windows[#windows + 1] = window
     return window
 end

@@ -40,24 +40,6 @@ local function ResetBounds(frame)
     frame:SetResizeBounds(ACEGUI_MIN_WIDTH, ACEGUI_MIN_HEIGHT)
 end
 
----A setting bound to the profile field of its own key; a change refreshes the window.
----@param option table an AceConfig option without get and set
----@return table
-local function Setting(option)
-    ---@param info table AceConfig's info; its last entry is the option's key
-    ---@return GameValue
-    option.get = function(info)
-        return Addon.db.profile[info[#info]] --[[@as GameValue]]
-    end
-    ---@param info table
-    ---@param value GameValue
-    option.set = function(info, value)
-        Addon.db.profile[info[#info]] = value
-        Addon:UpdateCatchWindow()
-    end
-    return option
-end
-
 ---The values of a choice, by their L.<PREFIX>_<VALUE> names.
 ---@param prefix string
 ---@param values string[]
@@ -68,6 +50,73 @@ local function Choices(prefix, values)
         out[value] = L[prefix .. "_" .. value:upper()]
     end
     return out
+end
+
+---A setting bound to the profile field of its own key; a change refreshes the window, or calls
+---`apply` (the name of an Addon method).
+---@param option table an AceConfig option without get and set
+---@param apply string?
+---@return table
+local function Setting(option, apply)
+    ---@param info table AceConfig's info; its last entry is the option's key
+    ---@return GameValue
+    option.get = function(info)
+        return Addon.db.profile[info[#info]] --[[@as GameValue]]
+    end
+    ---@param info table
+    ---@param value GameValue
+    option.set = function(info, value)
+        Addon.db.profile[info[#info]] = value
+        Addon[apply or "UpdateCatchWindow"](Addon)
+    end
+    return option
+end
+
+---The Text box: the same profile fields as the windows' Edit Mode dialogs.
+---@return table
+local function TextOptions()
+    local font = Setting({
+        type = "select",
+        name = L.FONT,
+        order = 1,
+        values = function()
+            local values = {}
+            for _, name in ipairs(LibStub("LibSharedMedia-3.0"):List("font")) do
+                values[name] = name
+            end
+            return values
+        end,
+    }, "ApplyText")
+    -- No saved font is LibSharedMedia's default, which the list shows chosen.
+    font.get = function()
+        return Addon.db.profile.font or LibStub("LibSharedMedia-3.0"):GetDefault("font")
+    end
+    return {
+        type = "group",
+        inline = true,
+        name = L.TEXT,
+        order = 10,
+        args = {
+            font = font,
+            fontSize = Setting({
+                type = "range",
+                name = L.FONT_SIZE,
+                order = 2,
+                min = Addon.MIN_FONT_SIZE,
+                max = Addon.MAX_FONT_SIZE,
+                step = 1,
+            }, "ApplyText"),
+            outline = Setting({
+                type = "select",
+                name = L.OUTLINE,
+                order = 3,
+                values = Choices("OUTLINE", Addon.OUTLINE_ORDER),
+                sorting = Addon.OUTLINE_ORDER,
+            }, "ApplyText"),
+            slug = Setting({ type = "toggle", name = L.SLUG, desc = L.SLUG_DESC, order = 4 }, "ApplyText"),
+            shadow = Setting({ type = "toggle", name = L.SHADOW, order = 5 }, "ApplyText"),
+        },
+    }
 end
 
 ---The Profiles page: AceDBOptions' group with a copy of only its own entries.
@@ -123,6 +172,7 @@ function Addon:GetOptionsTable()
                             }),
                             rows = Setting({ type = "range", name = L.ROWS, order = 4, min = 3, max = 20, step = 1 }),
                             editMode = { type = "description", name = L.EDIT_MODE_HINT, order = 5 },
+                            text = TextOptions(),
                         },
                     },
                     tooltip = {

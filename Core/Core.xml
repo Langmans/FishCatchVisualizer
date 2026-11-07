@@ -4,6 +4,8 @@
     <Script file="Place.lua"/>
     <Script file="Log.lua"/>
     <Script file="Detect.lua"/>
+    <!-- Text.lua before Window.lua: each window takes its text settings at creation. -->
+    <Script file="Text.lua"/>
     <Script file="Window.lua"/>
     <Script file="CatchWindow.lua"/>
     <Script file="Tooltip.lua"/>

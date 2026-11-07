@@ -137,7 +137,7 @@ describe("the catch window", function()
             client:loadLayout("Modern")
             assert.are.same({ "RIGHT", UIParent, "RIGHT", -60, 120 }, window.frame.points[1])
             assert.are.equal(1, window.frame.scale)
-            assert.are.equal(0.6, window.frame.backdropColor[4])
+            assert.are.equal(0, window.frame.backdropColor[4], "see-through, as Fishbringer")
         end)
 
         it("keeps where it was moved to and its settings per layout", function()

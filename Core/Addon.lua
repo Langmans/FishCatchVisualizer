@@ -49,11 +49,17 @@ local DEFAULTS = {
         rows = 8,
         tooltip = true,
         tooltipPlaces = 5,
+        -- The windows' text (Core\Text.lua). font has no default: LibSharedMedia's default then.
+        fontSize = 12,
+        outline = "none",
+        slug = false,
+        shadow = true,
         -- Per Edit Mode layout, per window: where it sits and its look (Core\Window.lua).
         layouts = {},
     },
     global = { chars = {}, sessions = {}, items = {} },
 }
+Addon.DEFAULTS = DEFAULTS
 
 ---Whether the game hands over a value the addon may read: not nil and not a secret value.
 ---@param value GameValue
@@ -76,6 +82,7 @@ function Addon:OnInitialize()
     self:SetupOptions()
     self:SetupTooltip()
     self:SetupEditMode()
+    self:SetupText()
 end
 
 function Addon:OnEnable()

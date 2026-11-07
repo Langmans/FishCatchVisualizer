@@ -17,6 +17,15 @@
 ---@field PlaceName fun(mapID: number, area: AddonArea): string
 ---@field NewBarWindow fun(key: string, name: string, color: number[]): AddonWindow
 ---@field catchWindow AddonWindow
+---@field windows AddonWindow[] every bar window, in the order made
+---@field DEFAULTS table the AceDB defaults (Core\Addon.lua)
+---@field outlines table<string, string> outline choice -> SetFont flag: outlines.thin is "OUTLINE"
+---@field OUTLINE_ORDER string[] the outline choices in the order the lists show them
+---@field MIN_FONT_SIZE number
+---@field MAX_FONT_SIZE number
+---@field TextSettings fun(): LibEditModeSetting[] a window's Edit Mode text settings, new tables
+---@field ApplyText fun(self: Addon)
+---@field SetupText fun(self: Addon)
 ---@field DevOptions? fun(self: Addon): table the development box of the options, only in a copy from the repository
 ---@field AddItemPlaces fun(self: Addon, tooltip: GameTooltip, data: AddonTooltipData?)
 ---@field L table<string, string> the client language's strings
@@ -77,6 +86,11 @@
 ---@field rows number bars at most
 ---@field tooltip boolean whether item tooltips list the places
 ---@field tooltipPlaces number places listed at most
+---@field font? string a LibSharedMedia font name; none: its default
+---@field fontSize number
+---@field outline string an Addon.outlines key
+---@field slug boolean draw the text with the Slug renderer
+---@field shadow boolean
 ---@field layouts table<string, table<string, AddonWindowLayout>> per Edit Mode layout, per window key
 
 ---A window's place and look, every field set: Window.lua's defaults.
@@ -153,6 +167,10 @@
 ---@field buttons table<string, AddonButton>
 ---@field lastButton? string the key of the button added last
 ---@field layoutName? string the Edit Mode layout in use
+---@field fontPath? string the text's font file, once ApplyFont has run
+---@field fontSize? number
+---@field fontFlags? string
+---@field fontShadow? boolean
 
 ---A window's bar row.
 ---@class AddonBarRow
