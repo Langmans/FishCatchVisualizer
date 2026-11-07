@@ -1,0 +1,14 @@
+## Interface: 16001
+## Title: FishCatchVisualizer
+## Category: Professions
+## Notes: Logs which fish you catch in each subzone, shows the odds where you stand while a fishing pole is equipped, and where you caught a fish in its tooltip.
+## Author: Langmans
+## Version: @project-version@
+## SavedVariables: FishCatchVisualizerDB
+## OptionalDeps: Ace3, LibStub, LibEditMode
+## IconTexture: Interface\Icons\Trade_Fishing
+## X-License: MIT
+
+embeds.xml
+Locales\Locales.xml
+Core\Core.xml

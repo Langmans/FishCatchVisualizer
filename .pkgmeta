@@ -1,0 +1,66 @@
+package-as: FishCatchVisualizer
+
+# Ace3 is fetched at package time and never committed, pinned to the same commit on master of its
+# GitHub mirror as BattleCry and Huntsworn: the latest release (Release-r1403) lacks AceDB's
+# WoW: Forever fixes. tests/libs.lua reads this block and fetches the same commits into Libs/ for
+# the tests, so tests and release always run the same Ace3.
+externals:
+  Libs/LibStub:
+    url: https://github.com/WoWUIDev/Ace3.git
+    commit: 40f4cc1356ae7fcc0cf71fc0a19dc7d50d6ae6c2
+    path: LibStub
+  Libs/CallbackHandler-1.0:
+    url: https://github.com/WoWUIDev/Ace3.git
+    commit: 40f4cc1356ae7fcc0cf71fc0a19dc7d50d6ae6c2
+    path: CallbackHandler-1.0
+  Libs/AceAddon-3.0:
+    url: https://github.com/WoWUIDev/Ace3.git
+    commit: 40f4cc1356ae7fcc0cf71fc0a19dc7d50d6ae6c2
+    path: AceAddon-3.0
+  Libs/AceEvent-3.0:
+    url: https://github.com/WoWUIDev/Ace3.git
+    commit: 40f4cc1356ae7fcc0cf71fc0a19dc7d50d6ae6c2
+    path: AceEvent-3.0
+  Libs/AceConsole-3.0:
+    url: https://github.com/WoWUIDev/Ace3.git
+    commit: 40f4cc1356ae7fcc0cf71fc0a19dc7d50d6ae6c2
+    path: AceConsole-3.0
+  Libs/AceDB-3.0:
+    url: https://github.com/WoWUIDev/Ace3.git
+    commit: 40f4cc1356ae7fcc0cf71fc0a19dc7d50d6ae6c2
+    path: AceDB-3.0
+  Libs/AceDBOptions-3.0:
+    url: https://github.com/WoWUIDev/Ace3.git
+    commit: 40f4cc1356ae7fcc0cf71fc0a19dc7d50d6ae6c2
+    path: AceDBOptions-3.0
+  Libs/AceLocale-3.0:
+    url: https://github.com/WoWUIDev/Ace3.git
+    commit: 40f4cc1356ae7fcc0cf71fc0a19dc7d50d6ae6c2
+    path: AceLocale-3.0
+  Libs/AceGUI-3.0:
+    url: https://github.com/WoWUIDev/Ace3.git
+    commit: 40f4cc1356ae7fcc0cf71fc0a19dc7d50d6ae6c2
+    path: AceGUI-3.0
+  Libs/AceConfig-3.0:
+    url: https://github.com/WoWUIDev/Ace3.git
+    commit: 40f4cc1356ae7fcc0cf71fc0a19dc7d50d6ae6c2
+    path: AceConfig-3.0
+  # The windows' position, size and opacity in Blizzard's Edit Mode, per layout. Tag 19, the
+  # first with interface 16001 (WoW: Forever) in its .toc.
+  Libs/LibEditMode:
+    url: https://github.com/p3lim-wow/LibEditMode.git
+    commit: b4816be444fec1160eac31d9a841f74636898acc
+
+# Release notes come from this file instead of the commit log.
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+# Files starting with a dot are left out by the packager already.
+ignore:
+  - annotations
+  - coverage
+  - tests
+  - fishcatchvisualizer-dev-1.rockspec
+  - stylua.toml
+  - tasks
