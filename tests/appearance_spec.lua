@@ -1,5 +1,6 @@
--- The windows' text (Core\Text.lua): font from LibSharedMedia, size, outline, Slug rendering and
--- shadow, one set per profile, changed in the options or in a window's Edit Mode dialog.
+-- The windows' appearance (Core\Appearance.lua): font from LibSharedMedia, size, outline, Slug
+-- rendering, colours, shadow and the bars' texture, one set per profile, changed in the options or
+-- in a window's Edit Mode dialog.
 
 ---A logged-in client with the catch window up and a bar in it.
 ---@return table client, table window
@@ -24,7 +25,7 @@ end
 ---An option of the general page's Text box as AceConfig has it.
 local function option(key)
     local options = LibStub("AceConfigRegistry-3.0"):GetOptionsTable("FishCatchVisualizer", "dialog", "test-1")
-    return options.args.general.args.window.args.text.args[key], { "general", "window", "text", key }
+    return options.args.general.args.window.args.appearance.args[key], { "general", "window", "appearance", key }
 end
 
 ---Sets an option of the Text box as AceConfig does; a colour takes r, g, b (and a).
@@ -33,7 +34,7 @@ local function setOption(key, ...)
     entry.set(info, ...)
 end
 
-describe("the windows' text", function()
+describe("the windows' appearance", function()
     it("is the shared default font at 12, the title at 14, no outline, with a black shadow", function()
         local _, window = shown()
         assert.are.same({ "Fonts\\FRIZQT__.TTF", 14, "" }, window.title.font)
@@ -122,6 +123,33 @@ describe("the windows' text", function()
         assert.are.equal("Fonts\\FRIZQT__.TTF", window.title.font[1])
         LibStub("LibSharedMedia-3.0"):Register("font", "Late Font", "Interface\\AddOns\\Late\\Late.ttf")
         assert.are.equal("Interface\\AddOns\\Late\\Late.ttf", window.title.font[1])
+    end)
+
+    it("draws the bars with any statusbar texture LibSharedMedia knows, Blizzard's by default", function()
+        local client, window = shown()
+        assert.are.equal("Interface\\TargetingFrame\\UI-StatusBar", window.rows[1].bar.barTexture)
+        setOption("barTexture", "Solid")
+        assert.are.equal("Interface\\Buttons\\WHITE8X8", window.rows[1].bar.barTexture)
+        client:catch(ITEMS.smallfish)
+        assert.are.equal("Interface\\Buttons\\WHITE8X8", window.rows[2].bar.barTexture, "rows made later too")
+        local setting = client:editModeSetting(window.frame, client.Addon.L.BAR_TEXTURE)
+        assert.are.equal("Solid", setting.get("Modern"))
+        local names = {}
+        for _, option in ipairs(setting.values()) do
+            names[option.value] = true
+        end
+        assert.is_true(names.Blizzard)
+        setting.set("Modern", "Blizzard")
+        assert.are.equal("Interface\\TargetingFrame\\UI-StatusBar", window.rows[1].bar.barTexture)
+    end)
+
+    it("waits for a saved bar texture an addon shares later", function()
+        local saved = { profiles = { Default = { barTexture = "Late Bar" } } }
+        local client = NewClient({ saved = saved }):login():equip(ITEMS.pole):catch(ITEMS.snapper)
+        local bar = client.Addon.catchWindow.rows[1].bar
+        assert.are.equal("Interface\\TargetingFrame\\UI-StatusBar", bar.barTexture)
+        LibStub("LibSharedMedia-3.0"):Register("statusbar", "Late Bar", "Interface\\AddOns\\Late\\Bar.tga")
+        assert.are.equal("Interface\\AddOns\\Late\\Bar.tga", bar.barTexture)
     end)
 
     it("reaches rows made later", function()

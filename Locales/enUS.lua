@@ -39,8 +39,9 @@ L.BUTTON_GUILD = "Guild"
 -- Edit Mode, a window's dialog: its sliders.
 L.SCALE = "Size"
 L.OPACITY = "Background opacity"
--- Edit Mode dialog and settings window, the Text box: the windows' text, the same in both.
-L.TEXT = "Text"
+-- Edit Mode dialog and settings window, the Text and bars box: the windows' appearance, the same in
+-- both.
+L.APPEARANCE = "Text and bars"
 L.FONT = "Font"
 L.FONT_SIZE = "Text size"
 L.OUTLINE = "Outline"
@@ -51,6 +52,8 @@ L.SLUG = "High quality text"
 L.SLUG_DESC = "Draws the text with the game's Slug renderer: sharp at any size, also with an outline."
 L.SHADOW = "Text shadow"
 L.SHADOW_COLOR = "Shadow colour"
+-- The bars' texture, from the statusbar textures LibSharedMedia knows.
+L.BAR_TEXTURE = "Bar texture"
 -- The shadow's offset: right (or left, below 0), and up (or down, below 0), in pixels.
 L.SHADOW_X = "Shadow offset x"
 L.SHADOW_Y = "Shadow offset y"

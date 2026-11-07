@@ -48,11 +48,13 @@
 ---@field MIN_FONT_SIZE number
 ---@field MAX_FONT_SIZE number
 ---@field MAX_SHADOW_OFFSET number the shadow's offset either way
----@field TextChanged fun(self: Addon)
----@field SetTextColor fun(self: Addon, key: "titleColor"|"textColor"|"shadowColor", r: number, g: number, b: number, a: number?)
----@field TextSettings fun(): LibEditModeSetting[] a window's Edit Mode text settings, new tables
----@field ApplyText fun(self: Addon)
----@field SetupText fun(self: Addon)
+---@field AppearanceChanged fun(self: Addon)
+---@field SetAppearanceColor fun(self: Addon, key: "titleColor"|"textColor"|"shadowColor", r: number, g: number, b: number, a: number?)
+---@field AppearanceSettings fun(): LibEditModeSetting[] a window's Edit Mode appearance settings, new tables
+---@field ApplyAppearance fun(self: Addon)
+---@field Appearance fun(self: Addon): AddonAppearance
+---@field SetAppearanceSetting fun(self: Addon, key: string, value: string|number|boolean)
+---@field SetupAppearance fun(self: Addon)
 ---@field DevOptions? fun(self: Addon): table the development box of the options, only in a copy from the repository
 ---@field AddItemPlaces fun(self: Addon, tooltip: GameTooltip, data: AddonTooltipData?)
 ---@field L table<string, string> the client language's strings
@@ -124,6 +126,7 @@
 ---@field share boolean swap counts with guildmates
 ---@field oapDebug string what goes to OAP Debug: an Addon.debugLevels key
 ---@field font? string a LibSharedMedia font name; none: its default
+---@field barTexture? string a LibSharedMedia statusbar name; none: its default
 ---@field fontSize number
 ---@field outline string an Addon.outlines key
 ---@field slug boolean draw the text with the Slug renderer
@@ -245,11 +248,12 @@
 ---@field buttons table<string, AddonButton>
 ---@field lastButton? string the key of the button added last
 ---@field layoutName? string the Edit Mode layout in use
----@field look? AddonTextLook the text, once ApplyLook has run
+---@field appearance? AddonAppearance what it draws with, once ApplyAppearance has run
 
----What the windows draw their text with (Core\Text.lua TextLook; one shared table).
----@class AddonTextLook
+---What the windows draw with (Core\Appearance.lua Appearance; one shared table).
+---@class AddonAppearance
 ---@field path string the font's file
+---@field barTexture string the bars' texture file
 ---@field size number
 ---@field flags string SetFont's flags: "OUTLINE, SLUG" and the like
 ---@field shadowX number 0 without shadow

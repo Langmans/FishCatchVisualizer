@@ -637,9 +637,12 @@ function NewClient(opts)
     function Region:SetTexture(texture)
         self.texture = texture
     end
-    -- A status bar's value, as the bar rows fill it.
+    -- A status bar's value and texture, as the bar rows fill them.
     function Region:SetValue(value)
         self.value = value
+    end
+    function Region:SetStatusBarTexture(texture)
+        self.barTexture = texture
     end
     local function newRegion(fields)
         fields = fields or {}

@@ -6,8 +6,8 @@ local _, ns = ...
 --
 -- Position, scale and opacity live in Blizzard's Edit Mode through LibEditMode, per Edit Mode
 -- layout: profile.layouts[layout name][window key] = { point, x, y, scale, alpha }, every field
--- falling back to DEFAULTS. The background is see-through by default, as Fishbringer's. The text
--- settings in the same dialog are the profile's (Core\Text.lua).
+-- falling back to DEFAULTS. The background is see-through by default, as Fishbringer's. The
+-- appearance settings in the same dialog are the profile's (Core\Appearance.lua).
 
 ---@type Addon
 local Addon = ns
@@ -22,6 +22,7 @@ local HEADER = 52
 local NOTE_HEIGHT = 14
 -- A button is as wide as its label plus this, so a bigger font never cuts a label off.
 local BUTTON_PAD, BUTTON_HEIGHT = 8, 14
+-- The bars' texture before the appearance arrives (Core\Appearance.lua sets the profile's).
 local BAR_TEXTURE = "Interface\\TargetingFrame\\UI-StatusBar"
 local BACKDROP = { bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 }
 -- A window's place and look in a layout it has not been touched in.
@@ -138,28 +139,28 @@ function Window:Slider(name, field, min, max)
     }
 end
 
----Gives a font string the window's text, `larger` points above its size, in the look's colour
----`colorKey` (none: the button labels, which Select colours). Before the first ApplyLook the
----template's font stays.
+---Gives a font string the window's text, `larger` points above its size, in the appearance's
+---colour `colorKey` (none: the button labels, which Select colours). Before the first
+---ApplyAppearance the template's font stays.
 ---@param text FontString
 ---@param larger number?
 ---@param colorKey "titleColor"|"textColor"|nil
 function Window:StyleText(text, larger, colorKey)
-    local look = self.look
-    if not look then return end
-    text:SetFont(look.path, look.size + (larger or 0), look.flags)
-    text:SetShadowOffset(look.shadowX, look.shadowY)
-    local shadow = look.shadowColor
+    local appearance = self.appearance
+    if not appearance then return end
+    text:SetFont(appearance.path, appearance.size + (larger or 0), appearance.flags)
+    text:SetShadowOffset(appearance.shadowX, appearance.shadowY)
+    local shadow = appearance.shadowColor
     text:SetShadowColor(shadow.r, shadow.g, shadow.b, shadow.a)
     if not colorKey then return end
-    local color = look[colorKey]
+    local color = appearance[colorKey]
     text:SetTextColor(color.r, color.g, color.b)
 end
 
----The text for every font string the window has, and for those it makes later.
----@param look AddonTextLook
-function Window:ApplyLook(look)
-    self.look = look
+---The appearance for every font string and bar the window has, and for those it makes later.
+---@param appearance AddonAppearance
+function Window:ApplyAppearance(appearance)
+    self.appearance = appearance
     self:StyleText(self.title, TITLE_LARGER, "titleColor")
     self:StyleText(self.subtitle, nil, "textColor")
     self:StyleText(self.empty, nil, "textColor")
@@ -171,6 +172,7 @@ function Window:ApplyLook(look)
     for _, row in ipairs(self.rows) do
         self:StyleText(row.left, nil, "textColor")
         self:StyleText(row.right, nil, "textColor")
+        row.bar:SetStatusBarTexture(appearance.barTexture)
     end
 end
 
@@ -226,7 +228,7 @@ function Window:FillRow(i, left, right, value)
     local row = self.rows[i]
     if not row then
         local bar = CreateFrame("StatusBar", nil, self.frame)
-        bar:SetStatusBarTexture(BAR_TEXTURE)
+        bar:SetStatusBarTexture(self.appearance and self.appearance.barTexture or BAR_TEXTURE)
         bar:SetMinMaxValues(0, 1)
         bar:SetHeight(ROW_HEIGHT)
         bar:SetPoint("TOPLEFT", PAD, -(HEADER + (i - 1) * (ROW_HEIGHT + ROW_GAP)))
@@ -315,7 +317,7 @@ function Addon.NewBarWindow(key, name, color)
     end
     LEM:AddFrame(frame, OnMoved, { point = DEFAULTS.point, x = DEFAULTS.x, y = DEFAULTS.y }, name)
     local settings = { window:Slider(L.SCALE, "scale", 0.5, 2), window:Slider(L.OPACITY, "alpha", 0, 1) }
-    for _, setting in ipairs(Addon.TextSettings()) do
+    for _, setting in ipairs(Addon.AppearanceSettings()) do
         settings[#settings + 1] = setting
     end
     LEM:AddFrameSettings(frame, settings)

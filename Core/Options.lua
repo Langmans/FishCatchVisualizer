@@ -96,7 +96,7 @@ local function ColorOption(name, key, order, hasAlpha)
         ---@param b number
         ---@param a number?
         set = function(_, r, g, b, a)
-            Addon:SetTextColor(key, r, g, b, hasAlpha and a or nil)
+            Addon:SetAppearanceColor(key, r, g, b, hasAlpha and a or nil)
         end,
     }
 end
@@ -114,35 +114,46 @@ local function OffsetOption(name, order)
         max = Addon.MAX_SHADOW_OFFSET,
         step = 0.1,
         bigStep = 0.5,
-    }, "TextChanged")
+    }, "AppearanceChanged")
 end
 
----The Text box: the same profile fields as the windows' Edit Mode dialogs.
+---A list of every LibSharedMedia medium of a type, for a profile field naming one. No saved name
+---is LibSharedMedia's default, which the list shows chosen.
+---@param name string
+---@param key "font"|"barTexture"
+---@param mediaType "font"|"statusbar"
+---@param order number
 ---@return table
-local function TextOptions()
-    local font = Setting({
+local function MediaOption(name, key, mediaType, order)
+    local option = Setting({
         type = "select",
-        name = L.FONT,
-        order = 1,
+        name = name,
+        order = order,
         values = function()
             local values = {}
-            for _, name in ipairs(LibStub("LibSharedMedia-3.0"):List("font")) do
-                values[name] = name
+            for _, medium in ipairs(LibStub("LibSharedMedia-3.0"):List(mediaType)) do
+                values[medium] = medium
             end
             return values
         end,
-    }, "TextChanged")
-    -- No saved font is LibSharedMedia's default, which the list shows chosen.
-    font.get = function()
-        return Addon.db.profile.font or LibStub("LibSharedMedia-3.0"):GetDefault("font")
+    }, "AppearanceChanged")
+    option.get = function()
+        return Addon.db.profile[key] or LibStub("LibSharedMedia-3.0"):GetDefault(mediaType)
     end
+    return option
+end
+
+---The Text and bars box: the same profile fields as the windows' Edit Mode dialogs.
+---@return table
+local function AppearanceOptions()
     return {
         type = "group",
         inline = true,
-        name = L.TEXT,
+        name = L.APPEARANCE,
         order = 10,
         args = {
-            font = font,
+            font = MediaOption(L.FONT, "font", "font", 1),
+            barTexture = MediaOption(L.BAR_TEXTURE, "barTexture", "statusbar", 12),
             fontSize = Setting({
                 type = "range",
                 name = L.FONT_SIZE,
@@ -150,15 +161,15 @@ local function TextOptions()
                 min = Addon.MIN_FONT_SIZE,
                 max = Addon.MAX_FONT_SIZE,
                 step = 1,
-            }, "TextChanged"),
+            }, "AppearanceChanged"),
             outline = Setting({
                 type = "select",
                 name = L.OUTLINE,
                 order = 3,
                 values = Choices("OUTLINE", Addon.OUTLINE_ORDER),
                 sorting = Addon.OUTLINE_ORDER,
-            }, "TextChanged"),
-            slug = Setting({ type = "toggle", name = L.SLUG, desc = L.SLUG_DESC, order = 4 }, "TextChanged"),
+            }, "AppearanceChanged"),
+            slug = Setting({ type = "toggle", name = L.SLUG, desc = L.SLUG_DESC, order = 4 }, "AppearanceChanged"),
             titleColor = ColorOption(L.TITLE_COLOR, "titleColor", 5),
             textColor = ColorOption(L.TEXT_COLOR, "textColor", 6),
             qualityColors = Setting({
@@ -166,8 +177,8 @@ local function TextOptions()
                 name = L.QUALITY_COLORS,
                 desc = L.QUALITY_COLORS_DESC,
                 order = 7,
-            }, "TextChanged"),
-            shadow = Setting({ type = "toggle", name = L.SHADOW, order = 8 }, "TextChanged"),
+            }, "AppearanceChanged"),
+            shadow = Setting({ type = "toggle", name = L.SHADOW, order = 8 }, "AppearanceChanged"),
             shadowColor = ColorOption(L.SHADOW_COLOR, "shadowColor", 9, true),
             shadowX = OffsetOption(L.SHADOW_X, 10),
             shadowY = OffsetOption(L.SHADOW_Y, 11),
@@ -229,7 +240,7 @@ function Addon:GetOptionsTable()
                             }),
                             rows = Setting({ type = "range", name = L.ROWS, order = 4, min = 3, max = 20, step = 1 }),
                             editMode = { type = "description", name = L.EDIT_MODE_HINT, order = 5 },
-                            text = TextOptions(),
+                            appearance = AppearanceOptions(),
                         },
                     },
                     tooltip = {

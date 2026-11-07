@@ -55,7 +55,8 @@ local DEFAULTS = {
         tooltipPlaces = 5,
         -- Swap counts with guildmates who have the addon (Core\Share.lua).
         share = true,
-        -- The windows' text (Core\Text.lua). font has no default: LibSharedMedia's default then.
+        -- The windows' appearance (Core\Appearance.lua). font and barTexture have no default:
+        -- LibSharedMedia's defaults then.
         fontSize = 12,
         outline = "none",
         slug = false,
@@ -97,7 +98,7 @@ function Addon:OnInitialize()
     self:SetupOptions()
     self:SetupTooltip()
     self:SetupEditMode()
-    self:SetupText()
+    self:SetupAppearance()
     self:SetupShare()
 end
 

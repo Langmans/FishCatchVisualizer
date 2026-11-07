@@ -1,9 +1,10 @@
 local _, ns = ...
 
--- The windows' text: a font from LibSharedMedia (so ElvUI's and SharedMedia's fonts are there),
--- a size, an outline, Slug rendering, a shadow (colour and x/y offset), the title's and the other
--- text's colours, and items in their quality's colour. One set per profile, changed in the options
--- or in any window's Edit Mode dialog; both read and write the same profile fields.
+-- The windows' appearance: a font from LibSharedMedia (so ElvUI's and SharedMedia's fonts are
+-- there), a size, an outline, Slug rendering, a shadow (colour and x/y offset), the title's and the
+-- other text's colours, items in their quality's colour, and the bars' texture (LibSharedMedia's
+-- statusbars). One set per profile, changed in the options or in any window's Edit Mode dialog;
+-- both read and write the same profile fields.
 
 ---@type Addon
 local Addon = ns
@@ -23,52 +24,58 @@ Addon.MAX_SHADOW_OFFSET = 4
 -- Edit Mode has sliders only, in half pixels; the options' slider also takes a typed number.
 local EDIT_MODE_OFFSET_STEP = 0.5
 
----The profile's font name, or LibSharedMedia's default.
+-- The profile fields that name LibSharedMedia media, and the media type of each.
+local MEDIA_TYPES = { font = "font", barTexture = "statusbar" }
+
+---The profile's name for a medium (font, barTexture), or LibSharedMedia's default.
+---@param key "font"|"barTexture"
 ---@return string
-local function FontName()
-    -- LibSharedMedia always has a default font.
-    return Addon.db.profile.font or LSM:GetDefault("font") --[[@as string]]
+local function MediaName(key)
+    -- LibSharedMedia always has a default font and statusbar.
+    return Addon.db.profile[key] or LSM:GetDefault(MEDIA_TYPES[key]) --[[@as string]]
 end
 
--- What the windows draw their text with, filled by TextLook and handed to every window.
----@type AddonTextLook
-local look = {}
+-- What the windows draw with, filled by Appearance and handed to every window.
+---@type AddonAppearance
+local appearance = {}
 
----The text the profile asks for, in the one shared look table.
----@return AddonTextLook
-function Addon:TextLook()
+---The appearance the profile asks for, in the one shared table.
+---@return AddonAppearance
+function Addon:Appearance()
     local profile = self.db.profile
     local flags = self.outlines[profile.outline] or ""
     if profile.slug then flags = flags == "" and SLUG or (flags .. ", " .. SLUG) end
-    -- An unknown name gives the default font's file.
-    look.path = LSM:Fetch("font", FontName()) --[[@as string]]
-    look.size, look.flags = profile.fontSize, flags
-    look.shadowX = profile.shadow and profile.shadowX or 0
-    look.shadowY = profile.shadow and profile.shadowY or 0
-    look.shadowColor, look.titleColor, look.textColor = profile.shadowColor, profile.titleColor, profile.textColor
-    return look
+    -- An unknown name gives the default's file.
+    appearance.path = LSM:Fetch("font", MediaName("font")) --[[@as string]]
+    appearance.barTexture = LSM:Fetch("statusbar", MediaName("barTexture")) --[[@as string]]
+    appearance.size, appearance.flags = profile.fontSize, flags
+    appearance.shadowX = profile.shadow and profile.shadowX or 0
+    appearance.shadowY = profile.shadow and profile.shadowY or 0
+    appearance.shadowColor = profile.shadowColor
+    appearance.titleColor, appearance.textColor = profile.titleColor, profile.textColor
+    return appearance
 end
 
----Gives every window the profile's text.
-function Addon:ApplyText()
-    local textLook = self:TextLook()
+---Gives every window the profile's appearance.
+function Addon:ApplyAppearance()
+    local current = self:Appearance()
     for _, window in ipairs(self.windows) do
-        window:ApplyLook(textLook)
+        window:ApplyAppearance(current)
     end
 end
 
----Shows a changed text setting: the text, and the bars, whose item names carry the quality colour.
-function Addon:TextChanged()
-    self:ApplyText()
+---Shows a changed setting: the windows, and the bars, whose item names carry the quality colour.
+function Addon:AppearanceChanged()
+    self:ApplyAppearance()
     self:UpdateCatchWindow()
 end
 
----Sets one text field of the profile and shows it.
+---Sets one appearance field of the profile and shows it.
 ---@param key string
 ---@param value string|number|boolean
-function Addon:SetTextSetting(key, value)
+function Addon:SetAppearanceSetting(key, value)
     self.db.profile[key] = value
-    self:TextChanged()
+    self:AppearanceChanged()
 end
 
 ---Sets a colour field of the profile and shows it; `a` only for a colour with opacity.
@@ -77,21 +84,24 @@ end
 ---@param g number
 ---@param b number
 ---@param a number?
-function Addon:SetTextColor(key, r, g, b, a)
+function Addon:SetAppearanceColor(key, r, g, b, a)
     local color = self.db.profile[key]
     color.r, color.g, color.b = r, g, b
     if a then color.a = a end
-    self:TextChanged()
+    self:AppearanceChanged()
 end
 
----Every font LibSharedMedia knows, as an Edit Mode dropdown lists them.
----@return { text: string, value: string }[]
-local function FontValues()
-    local values = {}
-    for _, name in ipairs(LSM:List("font")) do
-        values[#values + 1] = { text = name, value = name }
+---Every medium of a type LibSharedMedia knows, as an Edit Mode dropdown lists them.
+---@param mediaType "font"|"statusbar"
+---@return fun(): { text: string, value: string }[]
+local function MediaValues(mediaType)
+    return function()
+        local values = {}
+        for _, name in ipairs(LSM:List(mediaType)) do
+            values[#values + 1] = { text = name, value = name }
+        end
+        return values
     end
-    return values
 end
 
 -- The outline choices as an Edit Mode dropdown lists them, built once.
@@ -101,7 +111,8 @@ for i, key in ipairs(Addon.OUTLINE_ORDER) do
     OUTLINE_VALUES[i] = { text = L["OUTLINE_" .. key:upper()], value = key }
 end
 
----An Edit Mode setting for a profile text field. The layout plays no part: text is per profile.
+---An Edit Mode setting for a profile appearance field. The layout plays no part: the appearance is
+---per profile.
 ---@param kind number a LibEditMode.SettingType value
 ---@param name string
 ---@param key string
@@ -112,15 +123,17 @@ local function Setting(kind, name, key, extra)
     local profileDefaults = Addon.DEFAULTS.profile
     local setting = extra or {}
     setting.kind, setting.name = kind, name
-    setting.default = key == "font" and LSM:GetDefault("font") or profileDefaults[key]
+    local mediaType = MEDIA_TYPES[key]
+    setting.default = mediaType and LSM:GetDefault(mediaType) or profileDefaults[key]
     ---@return GameValue
     setting.get = function()
-        return key == "font" and FontName() or Addon.db.profile[key] --[[@as GameValue]]
+        if mediaType then return MediaName(key) end
+        return Addon.db.profile[key] --[[@as GameValue]]
     end
     ---@param _ string the layout
     ---@param value string|number|boolean
     setting.set = function(_, value)
-        Addon:SetTextSetting(key, value)
+        Addon:SetAppearanceSetting(key, value)
     end
     return setting --[[@as LibEditModeSetting]]
 end
@@ -147,7 +160,7 @@ local function ColorSetting(name, key, hasOpacity)
         ---@param color ColorMixin
         set = function(_, color)
             local r, g, b, a = color:GetRGBA()
-            Addon:SetTextColor(key, r, g, b, hasOpacity and a or nil)
+            Addon:SetAppearanceColor(key, r, g, b, hasOpacity and a or nil)
         end,
     }
 end
@@ -164,12 +177,12 @@ local function OffsetSetting(name, key)
     })
 end
 
----The text settings for a window's Edit Mode dialog, new tables for each window.
+---The appearance settings for a window's Edit Mode dialog, new tables for each window.
 ---@return LibEditModeSetting[]
-function Addon.TextSettings()
+function Addon.AppearanceSettings()
     local types = LEM.SettingType
     return {
-        Setting(types.Dropdown, L.FONT, "font", { values = FontValues }),
+        Setting(types.Dropdown, L.FONT, "font", { values = MediaValues("font") }),
         Setting(types.Slider, L.FONT_SIZE, "fontSize", {
             minValue = Addon.MIN_FONT_SIZE,
             maxValue = Addon.MAX_FONT_SIZE,
@@ -184,16 +197,17 @@ function Addon.TextSettings()
         ColorSetting(L.SHADOW_COLOR, "shadowColor", true),
         OffsetSetting(L.SHADOW_X, "shadowX"),
         OffsetSetting(L.SHADOW_Y, "shadowY"),
+        Setting(types.Dropdown, L.BAR_TEXTURE, "barTexture", { values = MediaValues("statusbar") }),
     }
 end
 
----Applies the text once the saved data exists, and again whenever an addon shares a font: the
----profile's font may come from an addon that loads later.
-function Addon:SetupText()
-    self:ApplyText()
+---Applies the look once the saved data exists, and again whenever an addon shares a font or a
+---statusbar texture: the profile's may come from an addon that loads later.
+function Addon:SetupAppearance()
+    self:ApplyAppearance()
     ---@param _ string the event
     ---@param mediaType string
     LSM.RegisterCallback(self, "LibSharedMedia_Registered", function(_, mediaType)
-        if mediaType == "font" then self:ApplyText() end
+        if mediaType == "font" or mediaType == "statusbar" then self:ApplyAppearance() end
     end)
 end

@@ -27,9 +27,9 @@ opacity.
 
 **Text:** any font LibSharedMedia knows (ElvUI's and SharedMedia's too), a size, an outline
 (none, thin, thick), high quality Slug rendering on top of any outline, a title and a text colour
-(gold and pure white), items in their quality's colour, and a shadow with its own colour and x/y
-offset (fractions too). The same settings are in the options and in the window's Edit Mode
-dialog.
+(gold and pure white), items in their quality's colour, a shadow with its own colour and x/y
+offset (fractions too), and the bars' texture (any statusbar LibSharedMedia knows). The same
+settings are in the options and in the window's Edit Mode dialog.
 
 ## Commands
 
@@ -112,7 +112,7 @@ an ID keeps its text as key; no subzone at all is area `0`, the zone itself.
 | `Core\Broker.lua` | the data broker object (LibDataBroker-1.1) |
 | `Core\Share.lua` | swapping counts with the guild (AceComm) |
 | `Core\Detect.lua` | the fishing pole and fishing loot |
-| `Core\Text.lua` | the windows' font, outline, Slug and shadow (LibSharedMedia) |
+| `Core\Appearance.lua` | the windows' font, outline, Slug, colours, shadow and bar texture (LibSharedMedia) |
 | `Core\Window.lua` | the bar list window and its Edit Mode hookup (LibEditMode) |
 | `Core\CatchWindow.lua` | the catch window's content |
 | `Core\Tooltip.lua` | the item tooltip lines (`TooltipDataProcessor`) |
@@ -160,9 +160,10 @@ Libraries come from the `.pkgmeta` externals: Ace3 with AceComm (pinned commit, 
 BattleCry), LibEditMode (tag 19, the first with interface 16001), LibSharedMedia-3.0 (svn tag
 v12.1.3) and LibDataBroker-1.1 (pinned commit, as in BattleCry).
 
-### Text
+### Appearance
 
-`Core\Text.lua`: profile fields `font` (a LibSharedMedia name; none means its default),
+`Core\Appearance.lua`: profile fields `font` and `barTexture` (LibSharedMedia font and statusbar names;
+none means its default),
 `fontSize`, `outline` (`Addon.outlines`: none, thin = `OUTLINE`, thick = `THICKOUTLINE`), `slug`,
 `titleColor`, `textColor`, `qualityColors`, `shadow`, `shadowColor` (with alpha), `shadowX` and
 `shadowY`. The SetFont flags are the outline's plus `SLUG`, comma-separated (`"OUTLINE, SLUG"`);

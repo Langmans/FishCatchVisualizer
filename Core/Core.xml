@@ -10,8 +10,8 @@
     <Script file="Broker.lua"/>
     <Script file="Share.lua"/>
     <Script file="Detect.lua"/>
-    <!-- Text.lua before Window.lua: each window takes its text settings at creation. -->
-    <Script file="Text.lua"/>
+    <!-- Appearance.lua before Window.lua: each window takes its appearance settings at creation. -->
+    <Script file="Appearance.lua"/>
     <Script file="Window.lua"/>
     <Script file="CatchWindow.lua"/>
     <Script file="Tooltip.lua"/>
