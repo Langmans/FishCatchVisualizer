@@ -26,7 +26,7 @@ describe("the item tooltip", function()
         local client = fishing():catch(ITEMS.snapper)
         client:moveTo(MAPS.elwynn, "Stone Cairn Lake"):catch(ITEMS.snapper)
         client:moveTo(MAPS.westfall, "The Dagger Hills"):catch(ITEMS.snapper)
-        client.addon.db.profile.tooltipPlaces = 1
+        client.Addon.db.profile.tooltipPlaces = 1
         local lines = client:hoverItem(ITEMS.snapper)
         assert.are.equal(3, #lines)
         assert.are.same({ "and 2 more places" }, lines[3])
@@ -34,7 +34,7 @@ describe("the item tooltip", function()
 
     it("can be switched off", function()
         local client = fishing():catch(ITEMS.snapper)
-        client.addon.db.profile.tooltip = false
+        client.Addon.db.profile.tooltip = false
         assert.are.same({}, client:hoverItem(ITEMS.snapper))
     end)
 

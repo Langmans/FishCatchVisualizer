@@ -65,6 +65,20 @@ an ID keeps its text as key; no subzone at all is area `0`, the zone itself.
 | `Core\Tooltip.lua` | the item tooltip lines (`TooltipDataProcessor`) |
 | `Core\Commands.lua`, `Core\Options.lua` | `/fcv` and the AceConfig options |
 
+### Renaming
+
+Every name the game and other addons see is made from the folder's name, `Addon.NAME`
+(`Core\Addon.lua`): the saved variables (`<NAME>DB`), the window's frame (`<NAME>CatchesWindow`),
+the slash command (`/<name>` in lower case, plus `SLASH_ALIAS` `/fcv`), the message
+(`<NAME>_CATCH`), the locale and the options pages. `tests\names_spec.lua` loads the addon as
+"Tester" and checks that all of these follow. The code carries no name: the addon object is
+`Addon` (`local Addon = ns`), its types are `Addon...` in `annotations\Addon.lua`.
+
+By hand: the folder and the repository, the `.toc`'s file name, `## Title` and
+`## SavedVariables`, `.wowluarc.json`'s global, the rockspec, and the texts (locales, README).
+A player's saved data stays under the old `<NAME>DB`: copy `WTF\Account\<account>\SavedVariables\<Old>.lua`
+to `<New>.lua` and rename the table inside.
+
 Libraries come from the `.pkgmeta` externals: Ace3 (pinned commit, as in BattleCry) and
 LibEditMode (tag 19, the first with interface 16001).
 

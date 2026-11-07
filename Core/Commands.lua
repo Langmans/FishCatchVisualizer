@@ -1,14 +1,14 @@
 local _, ns = ...
 
--- /fcv (and /fishcatchvisualizer): the first word picks a command, which gets the rest of the
--- line; anything else lists the commands.
+-- The slash command, NAME in lower case or SLASH_ALIAS (/fishcatchvisualizer, /fcv): the first
+-- word picks a command, which gets the rest of the line; anything else lists the commands.
 
----@type FishCatchVisualizer
-local FCV = ns.FCV
-local L = FCV.L
+---@type Addon
+local Addon = ns
+local L = Addon.L
 
 ---Command word -> what it takes, what it does, and its function; and the words in list order.
----@type table<string, FishCatchVisualizerCommand>
+---@type table<string, AddonCommand>
 local commands = {}
 ---@type string[]
 local order = {}
@@ -27,7 +27,7 @@ local function Usage()
     for _, word in ipairs(order) do
         local command = commands[word]
         local line = command.args == "" and word or (word .. " " .. command.args)
-        FCV:Print(("/fcv %s - %s"):format(line, command.help))
+        Addon:Print(("/%s %s - %s"):format(Addon.SLASH_ALIAS, line, command.help))
     end
 end
 
@@ -43,18 +43,18 @@ local function AddChoice(word, enum, values, help)
             Usage()
             return
         end
-        FCV.db.profile[word] = value
-        FCV:Print(L[word:upper() .. "_" .. value:upper()])
-        FCV:UpdateCatchWindow()
+        Addon.db.profile[word] = value
+        Addon:Print(L[word:upper() .. "_" .. value:upper()])
+        Addon:UpdateCatchWindow()
     end)
 end
 
 AddCommand("options", "", L.HELP_OPTIONS, function()
-    FCV:OpenOptions()
+    Addon:OpenOptions()
 end)
-AddChoice("show", FCV.showModes, { "pole", "always", "never" }, L.HELP_SHOW)
-AddChoice("scope", FCV.scopes, { "area", "zone" }, L.HELP_SCOPE)
-AddChoice("view", FCV.views, { "session", "char", "account" }, L.HELP_VIEW)
+AddChoice("show", Addon.showModes, { "pole", "always", "never" }, L.HELP_SHOW)
+AddChoice("scope", Addon.scopes, { "area", "zone" }, L.HELP_SCOPE)
+AddChoice("view", Addon.views, { "session", "char", "account" }, L.HELP_VIEW)
 -- Left out of the list: the options' other name.
 commands.config = commands.options
 
@@ -69,7 +69,7 @@ local function OnSlash(line)
     end
 end
 
-function FCV:SetupCommands()
-    self:RegisterChatCommand("fcv", OnSlash)
-    self:RegisterChatCommand("fishcatchvisualizer", OnSlash)
+function Addon:SetupCommands()
+    self:RegisterChatCommand(self.NAME:lower(), OnSlash)
+    self:RegisterChatCommand(self.SLASH_ALIAS, OnSlash)
 end

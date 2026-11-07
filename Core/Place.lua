@@ -5,9 +5,9 @@ local _, ns = ...
 -- subzone's name (GetSubZoneText), so names are matched to IDs through C_Map.GetAreaInfo. A
 -- subzone with no ID keeps its text as key, and no subzone at all is area 0, the zone itself.
 
----@type FishCatchVisualizer
-local FCV = ns.FCV
-local L = FCV.L
+---@type Addon
+local Addon = ns
+local L = Addon.L
 
 -- Area IDs are looked up to here. Classic's go to about 5000, retail's past 15000; WoW: Forever's
 -- own new areas may sit anywhere in between.
@@ -33,38 +33,38 @@ end
 
 ---The player's map and area key, or nil where the client cannot tell the map.
 ---@return number? mapID
----@return FishCatchVisualizerArea? area
-function ns.CurrentPlace()
+---@return AddonArea? area
+function Addon.CurrentPlace()
     local mapID = C_Map.GetBestMapForUnit("player")
-    if not ns.Readable(mapID) then return nil end
+    if not Addon.Readable(mapID) then return nil end
     local text = GetSubZoneText()
-    if not ns.Readable(text) or text == "" then return mapID, 0 end
+    if not Addon.Readable(text) or text == "" then return mapID, 0 end
     return mapID, AreaID(text) or text
 end
 
 ---The map's name in the client's language.
 ---@param mapID number
 ---@return string
-function ns.ZoneName(mapID)
+function Addon.ZoneName(mapID)
     local info = C_Map.GetMapInfo(mapID)
     return info and info.name or L.MAP:format(mapID)
 end
 
 ---The area's name: the subzone's, or the zone's for area 0.
 ---@param mapID number
----@param area FishCatchVisualizerArea
+---@param area AddonArea
 ---@return string
-function ns.AreaName(mapID, area)
-    if area == 0 then return ns.ZoneName(mapID) end
-    if type(area) == "number" then return C_Map.GetAreaInfo(area) or ns.ZoneName(mapID) end
+function Addon.AreaName(mapID, area)
+    if area == 0 then return Addon.ZoneName(mapID) end
+    if type(area) == "number" then return C_Map.GetAreaInfo(area) or Addon.ZoneName(mapID) end
     return area
 end
 
 ---"Crystal Lake, Elwynn Forest", or the zone's name alone for area 0.
 ---@param mapID number
----@param area FishCatchVisualizerArea
+---@param area AddonArea
 ---@return string
-function ns.PlaceName(mapID, area)
-    if area == 0 then return ns.ZoneName(mapID) end
-    return L.PLACE:format(ns.AreaName(mapID, area), ns.ZoneName(mapID))
+function Addon.PlaceName(mapID, area)
+    if area == 0 then return Addon.ZoneName(mapID) end
+    return L.PLACE:format(Addon.AreaName(mapID, area), Addon.ZoneName(mapID))
 end

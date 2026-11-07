@@ -3,12 +3,12 @@ local _, ns = ...
 -- What the game says: a fishing pole in hand (the session and the window follow it) and a loot
 -- window of fishing loot (each item in it is a catch).
 
----@type FishCatchVisualizer
-local FCV = ns.FCV
+---@type Addon
+local Addon = ns
 
 ---Whether the main hand holds a fishing pole.
 ---@return boolean
-function FCV:HasFishingPole()
+function Addon:HasFishingPole()
     local itemID = GetInventoryItemID("player", INVSLOT_MAINHAND)
     if not itemID then return false end
     local _, _, _, _, _, classID, subClassID = C_Item.GetItemInfoInstant(itemID)
@@ -19,7 +19,7 @@ end
 ---session, one going away ends it; then the window is shown or hidden.
 ---@param event string
 ---@param slot number? PLAYER_EQUIPMENT_CHANGED's slot
-function FCV:UpdateFishing(event, slot)
+function Addon:UpdateFishing(event, slot)
     if event == "PLAYER_EQUIPMENT_CHANGED" and slot ~= INVSLOT_MAINHAND then return end
     local fishing = self:HasFishingPole()
     if fishing ~= self.fishing then
@@ -35,18 +35,18 @@ end
 
 ---LOOT_OPENED: every item of a fishing loot window is logged where the player stands. Money and
 ---anything the client hides are skipped.
-function FCV:OnLootOpened()
+function Addon:OnLootOpened()
     if not IsFishingLoot() then return end
-    local mapID, area = ns.CurrentPlace()
+    local mapID, area = Addon.CurrentPlace()
     if not mapID or not area then return end
     for slot = 1, GetNumLootItems() do
         if GetLootSlotType(slot) == Enum.LootSlotType.Item then
             local link = GetLootSlotLink(slot)
-            local itemID = ns.Readable(link) and C_Item.GetItemInfoInstant(link)
+            local itemID = Addon.Readable(link) and C_Item.GetItemInfoInstant(link)
             if itemID then
                 local _, name, quantity = GetLootSlotInfo(slot)
-                quantity = ns.Readable(quantity) and quantity or 1
-                self:RecordCatch(mapID, area, itemID, ns.Readable(name) and name or nil, quantity)
+                quantity = Addon.Readable(quantity) and quantity or 1
+                self:RecordCatch(mapID, area, itemID, Addon.Readable(name) and name or nil, quantity)
                 self:SendMessage(self.messages.catch, itemID, quantity, mapID, area)
             end
         end

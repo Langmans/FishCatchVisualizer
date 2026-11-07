@@ -68,10 +68,12 @@ end
 ---@field saved table? FishCatchVisualizerDB as the saved file left it
 ---@field locale string? the client's language (GetLocale), enUS by default
 ---@field noTooltipData boolean? a client without TooltipDataProcessor
+---@field addonName string? the addon's folder name, FishCatchVisualizer by default: every name it shows the game comes from it
 
 ---@param opts TestClientOptions?
 function NewClient(opts)
     opts = opts or {}
+    local addonName = opts.addonName or "FishCatchVisualizer"
     local function noop() end
     local client = {
         time = 100,
@@ -564,7 +566,7 @@ function NewClient(opts)
 
     C_AddOns = {
         GetAddOnMetadata = function(name, key)
-            if name == "FishCatchVisualizer" then return TOC_METADATA[key] end
+            if name == addonName then return TOC_METADATA[key] end
         end,
         IsAddOnLoaded = function()
             return false, false
@@ -641,7 +643,7 @@ function NewClient(opts)
     local ns = {}
     for _, file in ipairs(TOC_FILES) do
         local path = file:gsub("^%./", "")
-        if not path:match("^Libs/LibEditMode/") then Chunk(file)("FishCatchVisualizer", ns) end
+        if not path:match("^Libs/LibEditMode/") then Chunk(file)(addonName, ns) end
         if path == "Libs/LibStub/LibStub.lua" then
             local lib = LibStub:NewLibrary("LibEditMode", 1)
             for key, value in pairs(editMode) do
@@ -650,9 +652,8 @@ function NewClient(opts)
             client.editMode, editMode = lib, lib
         end
     end
-    -- client.ns: the namespace the client hands only to the addon's files; client.addon: the
-    -- public addon object, as other addons reach it through AceAddon.
-    client.ns, client.addon = ns, ns.FCV
+    -- client.Addon: the addon object, which is also the namespace the client hands its files.
+    client.Addon = ns
 
     ---Delivers an event to every frame registered for it.
     function client:fire(event, ...)
@@ -688,7 +689,7 @@ function NewClient(opts)
     ---What the client does at login: ADDON_LOADED, PLAYER_LOGIN, then the loading screen ends.
     function client:login()
         self:fire("ADDON_LOADED", "SomeOtherAddon")
-        self:fire("ADDON_LOADED", "FishCatchVisualizer")
+        self:fire("ADDON_LOADED", addonName)
         self.loggedIn = true
         self:fire("PLAYER_LOGIN")
         self:fire("PLAYER_ENTERING_WORLD", true, false)
@@ -766,9 +767,10 @@ function NewClient(opts)
         return self.tooltipLines
     end
 
-    ---Runs a /fcv line the way the chat box does.
-    function client:slash(message)
-        SlashCmdList.ACECONSOLE_FCV(message)
+    ---Runs a line of the addon's slash command the way the chat box does; `command` picks another
+    ---of its commands (the alias), the addon's own name by default.
+    function client:slash(message, command)
+        SlashCmdList["ACECONSOLE_" .. (command or addonName):upper()](message)
         return self
     end
 

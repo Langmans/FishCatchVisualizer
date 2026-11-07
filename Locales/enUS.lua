@@ -1,6 +1,7 @@
 -- English strings, also the fallback for every other client language. Every string has a comment
 -- saying where it appears and what each placeholder holds, for translators.
-local L = LibStub("AceLocale-3.0"):NewLocale("FishCatchVisualizer", "enUS", true)
+local addonName = ...
+local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
 
 -- One string per line, however long.
 -- stylua: ignore start

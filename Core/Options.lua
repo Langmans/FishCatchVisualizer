@@ -1,12 +1,12 @@
 local addonName, ns = ...
 
--- The options, in the game's own AddOns settings and in a window of their own (/fcv options): the
--- general page, then Profiles. Position, size and opacity of the windows are not here: those are
--- in Blizzard's Edit Mode (Core\Window.lua).
+-- The options, in the game's own AddOns settings and in a window of their own (`options` of the
+-- slash command): the general page, then Profiles. Position, size and opacity of the windows are
+-- not here: those are in Blizzard's Edit Mode (Core\Window.lua).
 
----@type FishCatchVisualizer
-local FCV = ns.FCV
-local L = FCV.L
+---@type Addon
+local Addon = ns
+local L = Addon.L
 
 -- The entries of AceDBOptions' own Profiles page. AceDBOptions hands every addon the same args
 -- table, and other addons write into it, so only these are copied (as BattleCry does).
@@ -47,13 +47,13 @@ local function Setting(option)
     ---@param info table AceConfig's info; its last entry is the option's key
     ---@return GameValue
     option.get = function(info)
-        return FCV.db.profile[info[#info]] --[[@as GameValue]]
+        return Addon.db.profile[info[#info]] --[[@as GameValue]]
     end
     ---@param info table
     ---@param value GameValue
     option.set = function(info, value)
-        FCV.db.profile[info[#info]] = value
-        FCV:UpdateCatchWindow()
+        Addon.db.profile[info[#info]] = value
+        Addon:UpdateCatchWindow()
     end
     return option
 end
@@ -73,7 +73,7 @@ end
 ---The Profiles page: AceDBOptions' group with a copy of only its own entries.
 ---@return table
 local function ProfileOptions()
-    local shared = LibStub("AceDBOptions-3.0"):GetOptionsTable(FCV.db)
+    local shared = LibStub("AceDBOptions-3.0"):GetOptionsTable(Addon.db)
     -- GetOptionsTable always sets args.
     local sharedArgs = shared.args --[[@as table<string, AceConfig.OptionsTable>]]
     ---@type table<string, AceConfig.OptionsTable>
@@ -85,7 +85,7 @@ local function ProfileOptions()
 end
 
 ---@return table
-function FCV:GetOptionsTable()
+function Addon:GetOptionsTable()
     return {
         type = "group",
         name = addonName,
@@ -155,9 +155,9 @@ function FCV:GetOptionsTable()
                                 confirm = true,
                                 confirmText = L.CLEAR_CONFIRM,
                                 func = function()
-                                    FCV:ClearLog()
-                                    FCV:Print(L.LOG_CLEARED)
-                                    FCV:UpdateCatchWindow()
+                                    Addon:ClearLog()
+                                    Addon:Print(L.LOG_CLEARED)
+                                    Addon:UpdateCatchWindow()
                                 end,
                             },
                         },
@@ -169,7 +169,7 @@ function FCV:GetOptionsTable()
     }
 end
 
-function FCV:SetupOptions()
+function Addon:SetupOptions()
     LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, function()
         return self:GetOptionsTable()
     end)
@@ -180,7 +180,7 @@ function FCV:SetupOptions()
 end
 
 ---Opens the options in their own window, which can be moved and resized, or closes it when open.
-function FCV:OpenOptions()
+function Addon:OpenOptions()
     local dialog = LibStub("AceConfigDialog-3.0")
     if dialog.OpenFrames[addonName] then
         dialog:Close(addonName)

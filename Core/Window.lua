@@ -1,4 +1,4 @@
-local addonName, ns = ...
+local _, ns = ...
 
 -- A bar list window, the catch window's and later the Wowhead window's: a title, a subtitle, a
 -- row of buttons, then one status bar per row with a label on the left and numbers on the right.
@@ -8,9 +8,9 @@ local addonName, ns = ...
 -- layout: profile.layouts[layout name][window key] = { point, x, y, scale, alpha }, every field
 -- falling back to DEFAULTS.
 
----@type FishCatchVisualizer
-local FCV = ns.FCV
-local L = FCV.L
+---@type Addon
+local Addon = ns
+local L = Addon.L
 ---@type LibEditMode
 local LEM = LibStub("LibEditMode")
 
@@ -23,14 +23,14 @@ local BUTTON_WIDTH, BUTTON_HEIGHT = 74, 14
 local BAR_TEXTURE = "Interface\\TargetingFrame\\UI-StatusBar"
 local BACKDROP = { bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 }
 -- A window's place and look in a layout it has not been touched in.
----@type FishCatchVisualizerWindowLook
+---@type AddonWindowLook
 local DEFAULTS = { point = "RIGHT", x = -60, y = 120, scale = 1, alpha = 0.6 }
 
 ---Every window made, so a new Edit Mode layout reaches them all.
----@type FishCatchVisualizerWindow[]
+---@type AddonWindow[]
 local windows = {}
 
----@class FishCatchVisualizerWindow
+---@class AddonWindow
 local Window = {}
 Window.__index = Window
 
@@ -46,9 +46,9 @@ end
 
 ---This window's saved fields in a layout, made when missing.
 ---@param layoutName string
----@return FishCatchVisualizerWindowLayout
+---@return AddonWindowLayout
 function Window:Saved(layoutName)
-    local layouts = FCV.db.profile.layouts
+    local layouts = Addon.db.profile.layouts
     local layout = layouts[layoutName]
     if not layout then
         layout = {}
@@ -56,7 +56,7 @@ function Window:Saved(layoutName)
     end
     local saved = layout[self.key]
     if not saved then
-        saved = {} --[[@as FishCatchVisualizerWindowLayout]]
+        saved = {} --[[@as AddonWindowLayout]]
         layout[self.key] = saved
     end
     return saved
@@ -71,7 +71,7 @@ end
 ---@return number scale
 ---@return number alpha
 function Window:Look(layoutName)
-    local layout = layoutName and FCV.db.profile.layouts[layoutName]
+    local layout = layoutName and Addon.db.profile.layouts[layoutName]
     local saved = layout and layout[self.key] or DEFAULTS
     return saved.point or DEFAULTS.point,
         saved.x or DEFAULTS.x,
@@ -236,21 +236,22 @@ function Window:ShowRows(count, empty, more)
     self.frame:SetHeight(height + notes + PAD)
 end
 
----A new, hidden window. `key` names it in the saved layouts, `name` in Edit Mode; `color` is its
----bars' { r, g, b }.
+---A new, hidden window. `key` names it in the saved layouts and, capitalised, its frame
+---("<NAME>CatchesWindow"); `name` names it in Edit Mode; `color` is its bars' { r, g, b }.
 ---@param key string
 ---@param name string
 ---@param color number[]
----@return FishCatchVisualizerWindow
-function ns.NewBarWindow(key, name, color)
-    local frame = CreateFrame("Frame", addonName .. "_" .. key, UIParent, "BackdropTemplate")
+---@return AddonWindow
+function Addon.NewBarWindow(key, name, color)
+    local frameName = Addon.Global(key:sub(1, 1):upper() .. key:sub(2) .. "Window")
+    local frame = CreateFrame("Frame", frameName, UIParent, "BackdropTemplate")
     frame:SetSize(WIDTH, HEADER + PAD)
     frame:SetFrameStrata("MEDIUM")
     frame:SetClampedToScreen(true)
     frame:SetBackdrop(BACKDROP)
     frame:EnableMouse(false)
     frame:Hide()
-    local window = setmetatable({ key = key, frame = frame, color = color, rows = {}, buttons = {} }, Window) --[[@as FishCatchVisualizerWindow]]
+    local window = setmetatable({ key = key, frame = frame, color = color, rows = {}, buttons = {} }, Window) --[[@as AddonWindow]]
     window.title = Text(frame, "GameFontNormal")
     window.title:SetPoint("TOPLEFT", PAD, -6)
     window.title:SetPoint("RIGHT", -PAD, 0)
@@ -279,7 +280,7 @@ end
 
 ---Hooks the windows to Edit Mode: each layout loaded puts them in place, and while Edit Mode is
 ---open they show, so they can be moved. Called once the saved data exists.
-function FCV:SetupEditMode()
+function Addon:SetupEditMode()
     for _, window in ipairs(windows) do
         window:ApplyLayout(LEM:GetActiveLayoutName())
     end

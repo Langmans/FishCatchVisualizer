@@ -4,7 +4,7 @@
 ---@return table client, table window
 local function fishing(opts)
     local client = NewClient(opts):login():equip(ITEMS.pole)
-    return client, client.ns.catchWindow
+    return client, client.Addon.catchWindow
 end
 
 ---The text of each shown row: { left, right, bar value }.
@@ -19,7 +19,7 @@ end
 describe("the catch window", function()
     it("shows while a fishing pole is in hand and hides without it", function()
         local client = NewClient():login()
-        local window = client.ns.catchWindow
+        local window = client.Addon.catchWindow
         assert.is_false(window.frame:IsShown())
         client:equip(ITEMS.pole)
         assert.is_true(window.frame:IsShown())
@@ -33,12 +33,12 @@ describe("the catch window", function()
         local client = NewClient()
         client.mainHand = ITEMS.pole
         client:login()
-        assert.is_true(client.ns.catchWindow.frame:IsShown())
+        assert.is_true(client.Addon.catchWindow.frame:IsShown())
     end)
 
     it("can always show or never", function()
         local client = NewClient():login()
-        local window = client.ns.catchWindow
+        local window = client.Addon.catchWindow
         client:slash("show always")
         assert.is_true(window.frame:IsShown())
         client:slash("show never"):equip(ITEMS.pole)
@@ -66,7 +66,7 @@ describe("the catch window", function()
         assert.are.equal("Stone Cairn Lake", window.title.text)
         assert.are.same({}, shownRows(window))
         assert.is_true(window.empty:IsShown())
-        assert.are.equal(client.addon.L.NOTHING_HERE, window.empty.text)
+        assert.are.equal(client.Addon.L.NOTHING_HERE, window.empty.text)
     end)
 
     it("shows the whole zone in zone scope", function()
@@ -81,7 +81,7 @@ describe("the catch window", function()
     it("says where it is when the map is unknown", function()
         local client, window = fishing()
         client:moveTo(nil, "")
-        assert.are.equal(client.addon.L.UNKNOWN_PLACE, window.title.text)
+        assert.are.equal(client.Addon.L.UNKNOWN_PLACE, window.title.text)
     end)
 
     it("switches between session, character and account with its buttons", function()
@@ -98,7 +98,7 @@ describe("the catch window", function()
         client:catch(ITEMS.snapper)
         assert.are.equal(1, #shownRows(window), "the session by default")
         window.buttons.account.scripts.OnClick(window.buttons.account)
-        assert.are.equal("account", client.addon.db.profile.view)
+        assert.are.equal("account", client.Addon.db.profile.view)
         assert.are.equal(2, #shownRows(window))
         assert.is_true(window.buttons.account.selected)
         assert.is_false(window.buttons.session.selected)
@@ -109,8 +109,8 @@ describe("the catch window", function()
     it("shows at most its row count, then how many more", function()
         local client, window = fishing()
         client:catch(ITEMS.snapper, ITEMS.smallfish, ITEMS.sickly)
-        client.addon.db.profile.rows = 2
-        client.addon:UpdateCatchWindow()
+        client.Addon.db.profile.rows = 2
+        client.Addon:UpdateCatchWindow()
         assert.are.equal(2, #shownRows(window))
         assert.is_true(window.more:IsShown())
         assert.are.equal("and 1 more", window.more.text)
@@ -126,10 +126,10 @@ describe("the catch window", function()
             local client, window = fishing()
             local entry = client.editMode.frames[window.frame]
             assert.is_table(entry)
-            assert.are.equal(client.addon.L.WINDOW_CATCHES, entry.name)
+            assert.are.equal(client.Addon.L.WINDOW_CATCHES, entry.name)
             assert.are.same({ point = "RIGHT", x = -60, y = 120 }, entry.default)
-            assert.is_table(client:editModeSetting(window.frame, client.addon.L.SCALE))
-            assert.is_table(client:editModeSetting(window.frame, client.addon.L.OPACITY))
+            assert.is_table(client:editModeSetting(window.frame, client.Addon.L.SCALE))
+            assert.is_table(client:editModeSetting(window.frame, client.Addon.L.OPACITY))
         end)
 
         it("takes its spot, scale and opacity from the layout, the defaults in a new one", function()
@@ -144,11 +144,11 @@ describe("the catch window", function()
             local client, window = fishing()
             client:loadLayout("Modern")
             client:moveInEditMode(window.frame, "TOPLEFT", 100, -200)
-            client:editModeSetting(window.frame, client.addon.L.SCALE).set("Modern", 1.5)
-            client:editModeSetting(window.frame, client.addon.L.OPACITY).set("Modern", 0.3)
+            client:editModeSetting(window.frame, client.Addon.L.SCALE).set("Modern", 1.5)
+            client:editModeSetting(window.frame, client.Addon.L.OPACITY).set("Modern", 0.3)
             assert.are.equal(1.5, window.frame.scale)
             assert.are.equal(0.3, window.frame.backdropColor[4])
-            assert.are.equal(1.5, client:editModeSetting(window.frame, client.addon.L.SCALE).get("Modern"))
+            assert.are.equal(1.5, client:editModeSetting(window.frame, client.Addon.L.SCALE).get("Modern"))
 
             client:loadLayout("Classic")
             assert.are.same({ "RIGHT", UIParent, "RIGHT", -60, 120 }, window.frame.points[1])
@@ -163,12 +163,12 @@ describe("the catch window", function()
                 profiles = { Default = { layouts = { Modern = { catches = { point = "TOP", x = 5, y = -50 } } } } },
             }
             local client = NewClient({ saved = saved }):login():loadLayout("Modern")
-            assert.are.same({ "TOP", UIParent, "TOP", 5, -50 }, client.ns.catchWindow.frame.points[1])
+            assert.are.same({ "TOP", UIParent, "TOP", 5, -50 }, client.Addon.catchWindow.frame.points[1])
         end)
 
         it("shows while Edit Mode is open, so it can be moved, then follows the pole again", function()
             local client = NewClient():login()
-            local frame = client.ns.catchWindow.frame
+            local frame = client.Addon.catchWindow.frame
             client:enterEditMode()
             assert.is_true(frame:IsShown())
             client:exitEditMode()

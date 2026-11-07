@@ -1,16 +1,23 @@
 local addonName, ns = ...
 
--- The addon object, its fixed value sets and its saved data.
---
--- The addon object (FCV) is public: other addons reach it through
--- LibStub("AceAddon-3.0"):GetAddon("FishCatchVisualizer") and hear about catches through
--- FCV.messages.catch. `ns`, the table the client hands only to this addon's files, holds what only
--- they share (the place helpers, the window); nothing on FCV leads back to it.
+-- The addon object, its fixed value sets and its saved data. The addon object is the namespace
+-- the client hands every file (`Addon`), and other addons reach it through AceAddon. Every name the
+-- game and other addons see is made from the folder's name, NAME (README > Renaming).
 
----@type FishCatchVisualizer
-local FCV = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0")
-ns.FCV = FCV
-FCV.L = LibStub("AceLocale-3.0"):GetLocale(addonName)
+---@type Addon
+local Addon = LibStub("AceAddon-3.0"):NewAddon(ns, addonName, "AceConsole-3.0", "AceEvent-3.0")
+Addon.L = LibStub("AceLocale-3.0"):GetLocale(addonName)
+
+-- The folder's name; the slash command is NAME in lower case, plus SLASH_ALIAS.
+Addon.NAME = addonName
+Addon.SLASH_ALIAS = "fcv"
+
+---A global name of the addon's own (a frame's, the saved variables'), NAME first.
+---@param suffix string
+---@return string
+function Addon.Global(suffix)
+    return addonName .. suffix
+end
 
 ---A string enum whose keys are its values: { "pole", "always" } gives { pole = "pole", ... }.
 ---@param values string[]
@@ -24,21 +31,21 @@ local function SelfKeyed(values)
 end
 
 -- When the catch window shows: with a fishing pole in hand, always, or never.
-FCV.showModes = SelfKeyed({ "pole", "always", "never" })
+Addon.showModes = SelfKeyed({ "pole", "always", "never" })
 -- What the window covers: the subzone the player stands in, or the whole zone.
-FCV.scopes = SelfKeyed({ "area", "zone" })
+Addon.scopes = SelfKeyed({ "area", "zone" })
 -- Whose catches the window counts: this fishing session's, this character's, every character's.
-FCV.views = SelfKeyed({ "session", "char", "account" })
--- Public messages (AceEvent SendMessage). catch: itemID, quantity, mapID, area key.
-FCV.messages = { catch = "FISHCATCHVISUALIZER_CATCH" }
+Addon.views = SelfKeyed({ "session", "char", "account" })
+-- Public messages (AceEvent SendMessage), "<NAME>_CATCH". catch: itemID, quantity, mapID, area key.
+Addon.messages = { catch = addonName:upper() .. "_CATCH" }
 
--- The saved data: the settings per profile, the catches account-wide (see
--- annotations\FishCatchVisualizer.lua for the shapes).
+-- The saved data: the settings per profile, the catches account-wide (see annotations\Addon.lua
+-- for the shapes).
 local DEFAULTS = {
     profile = {
-        show = FCV.showModes.pole,
-        scope = FCV.scopes.area,
-        view = FCV.views.session,
+        show = Addon.showModes.pole,
+        scope = Addon.scopes.area,
+        view = Addon.views.session,
         rows = 8,
         tooltip = true,
         tooltipPlaces = 5,
@@ -51,27 +58,27 @@ local DEFAULTS = {
 ---Whether the game hands over a value the addon may read: not nil and not a secret value.
 ---@param value GameValue
 ---@return boolean
-function ns.Readable(value)
+function Addon.Readable(value)
     return value ~= nil and not (issecretvalue and issecretvalue(value))
 end
 
 ---A share from 0 to 1 as a whole percentage; a share above 0 that would round to 0 is "<1%".
 ---@param share number
 ---@return string
-function ns.Percent(share)
+function Addon.Percent(share)
     if share > 0 and share < 0.005 then return "<1%" end
     return ("%d%%"):format(math.floor(share * 100 + 0.5))
 end
 
-function FCV:OnInitialize()
-    self.db = LibStub("AceDB-3.0"):New("FishCatchVisualizerDB", DEFAULTS, true) --[[@as FishCatchVisualizerDB]]
+function Addon:OnInitialize()
+    self.db = LibStub("AceDB-3.0"):New(Addon.Global("DB"), DEFAULTS, true) --[[@as AddonDB]]
     self:SetupCommands()
     self:SetupOptions()
     self:SetupTooltip()
     self:SetupEditMode()
 end
 
-function FCV:OnEnable()
+function Addon:OnEnable()
     self:RegisterEvent("LOOT_OPENED", "OnLootOpened")
     self:RegisterEvent("PLAYER_ENTERING_WORLD", "UpdateFishing")
     self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED", "UpdateFishing")

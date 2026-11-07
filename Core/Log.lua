@@ -4,8 +4,8 @@ local _, ns = ...
 -- zones[mapID][area][itemID], and the two reads made of them: the counts at one place (the
 -- window) and the places one item was caught (the tooltip).
 
----@type FishCatchVisualizer
-local FCV = ns.FCV
+---@type Addon
+local Addon = ns
 
 -- A session goes on when the pole comes back within this many seconds of the last catch or of
 -- putting it away; after a longer break the next one starts.
@@ -14,30 +14,30 @@ local SESSION_GAP = 15 * 60
 local MAX_SESSIONS = 50
 
 ---Adds `quantity` of an item to a zones table.
----@param zones FishCatchVisualizerZones
+---@param zones AddonZones
 ---@param mapID number
----@param area FishCatchVisualizerArea
+---@param area AddonArea
 ---@param itemID number
 ---@param quantity number
 local function Bump(zones, mapID, area, itemID, quantity)
-    ---@type FishCatchVisualizerZone?
+    ---@type AddonZone?
     local zone = zones[mapID]
     if not zone then
-        zone = {} --[[@as FishCatchVisualizerZone]]
+        zone = {} --[[@as AddonZone]]
         zones[mapID] = zone
     end
-    ---@type FishCatchVisualizerCounts?
+    ---@type AddonCounts?
     local counts = zone[area]
     if not counts then
-        counts = {} --[[@as FishCatchVisualizerCounts]]
+        counts = {} --[[@as AddonCounts]]
         zone[area] = counts
     end
     counts[itemID] = (counts[itemID] or 0) + quantity
 end
 
 ---This character's newest session, whether or not it is still going.
----@return FishCatchVisualizerSession?
-function FCV:LatestSession()
+---@return AddonSession?
+function Addon:LatestSession()
     if self.session then return self.session end
     local sessions, key = self.db.global.sessions, self.db.keys.char
     for i = #sessions, 1, -1 do
@@ -46,8 +46,8 @@ function FCV:LatestSession()
 end
 
 ---Makes the session go on, or starts a new one after a break longer than SESSION_GAP.
----@return FishCatchVisualizerSession
-function FCV:StartSession()
+---@return AddonSession
+function Addon:StartSession()
     local now = GetServerTime()
     local latest = self:LatestSession()
     if latest and now - latest.last <= SESSION_GAP then
@@ -56,12 +56,12 @@ function FCV:StartSession()
         return latest
     end
     local sessions = self.db.global.sessions
-    ---@type FishCatchVisualizerSession
+    ---@type AddonSession
     local session = {
         char = self.db.keys.char,
         start = now,
         last = now,
-        zones = {} --[[@as FishCatchVisualizerZones]],
+        zones = {} --[[@as AddonZones]],
     }
     sessions[#sessions + 1] = session
     while #sessions > MAX_SESSIONS do
@@ -72,7 +72,7 @@ function FCV:StartSession()
 end
 
 ---The pole went away: the session's last moment is now; the next pole may make it go on.
-function FCV:EndSession()
+function Addon:EndSession()
     local session = self.session
     if not session then return end
     session.last = GetServerTime()
@@ -81,21 +81,21 @@ end
 
 ---Per item ID: the places it was caught, best share first, or false when it never was. Filled by
 ---ItemPlaces, emptied by every change to the log.
----@type table<number, FishCatchVisualizerItemPlace[]|false>
+---@type table<number, AddonItemPlace[]|false>
 local placesCache = {}
 
 ---Logs a catch for this character and its session.
 ---@param mapID number
----@param area FishCatchVisualizerArea
+---@param area AddonArea
 ---@param itemID number
 ---@param name string? the item's name, kept for when the client has not loaded the item
 ---@param quantity number
-function FCV:RecordCatch(mapID, area, itemID, name, quantity)
+function Addon:RecordCatch(mapID, area, itemID, name, quantity)
     local global, key = self.db.global, self.db.keys.char
     local char = global.chars[key]
     if not char then
         char = {
-            zones = {} --[[@as FishCatchVisualizerZones]],
+            zones = {} --[[@as AddonZones]],
         }
         global.chars[key] = char
     end
@@ -108,7 +108,7 @@ function FCV:RecordCatch(mapID, area, itemID, name, quantity)
 end
 
 ---Forgets every character's catches and sessions.
-function FCV:ClearLog()
+function Addon:ClearLog()
     local global = self.db.global
     wipe(global.chars)
     wipe(global.sessions)
@@ -121,17 +121,17 @@ end
 -- rows handed out.
 ---@type table<number, number>
 local sums = {}
----@type FishCatchVisualizerRow[]
+---@type AddonRow[]
 local pool = {}
----@type FishCatchVisualizerRow[]
+---@type AddonRow[]
 local rows = {}
 
 ---Adds a place's counts to `sums`; without an area, every area of the map.
----@param zones FishCatchVisualizerZones?
+---@param zones AddonZones?
 ---@param mapID number
----@param area FishCatchVisualizerArea?
+---@param area AddonArea?
 local function AddPlace(zones, mapID, area)
-    ---@type FishCatchVisualizerZone?
+    ---@type AddonZone?
     local zone = zones and zones[mapID]
     if not zone then return end
     for key, counts in pairs(zone) do
@@ -144,8 +144,8 @@ local function AddPlace(zones, mapID, area)
 end
 
 ---Most caught first; the item ID decides a tie, so the order holds from one call to the next.
----@param a FishCatchVisualizerRow
----@param b FishCatchVisualizerRow
+---@param a AddonRow
+---@param b AddonRow
 ---@return boolean
 local function ByCount(a, b)
     if a.count ~= b.count then return a.count > b.count end
@@ -153,13 +153,13 @@ local function ByCount(a, b)
 end
 
 ---The items caught at a place, most first. The rows are reused by the next call.
----@param view string a FCV.views value
+---@param view string a Addon.views value
 ---@param mapID number
----@param area FishCatchVisualizerArea? nil for the whole zone
----@return FishCatchVisualizerRow[] rows
+---@param area AddonArea? nil for the whole zone
+---@return AddonRow[] rows
 ---@return number count how many rows
 ---@return number total the place's catches
-function FCV:PlaceCounts(view, mapID, area)
+function Addon:PlaceCounts(view, mapID, area)
     wipe(sums)
     local global = self.db.global
     if view == self.views.session then
@@ -188,8 +188,8 @@ function FCV:PlaceCounts(view, mapID, area)
 end
 
 ---Best share first, then the most caught; map and area decide a tie.
----@param a FishCatchVisualizerItemPlace
----@param b FishCatchVisualizerItemPlace
+---@param a AddonItemPlace
+---@param b AddonItemPlace
 ---@return boolean
 local function ByShare(a, b)
     local shareA, shareB = a.count / a.total, b.count / b.total
@@ -202,13 +202,13 @@ end
 ---Every place any character caught the item, with its count and the place's total, best share
 ---first; nil when it was never caught. Built once per item until the log changes.
 ---@param itemID number
----@return FishCatchVisualizerItemPlace[]?
-function FCV:ItemPlaces(itemID)
+---@return AddonItemPlace[]?
+function Addon:ItemPlaces(itemID)
     local cached = placesCache[itemID]
     if cached ~= nil then return cached or nil end
-    ---@type table<string, FishCatchVisualizerItemPlace>
+    ---@type table<string, AddonItemPlace>
     local byPlace = {}
-    ---@type FishCatchVisualizerItemPlace[]
+    ---@type AddonItemPlace[]
     local places = {}
     for _, char in pairs(self.db.global.chars) do
         for mapID, zone in pairs(char.zones) do
