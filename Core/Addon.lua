@@ -63,7 +63,7 @@ local DEFAULTS = {
         -- Per Edit Mode layout, per window: where it sits and its look (Core\Window.lua).
         layouts = {},
     },
-    global = { chars = {}, sessions = {}, items = {} },
+    global = { chars = {}, sessions = {}, items = {}, times = {} },
 }
 Addon.DEFAULTS = DEFAULTS
 

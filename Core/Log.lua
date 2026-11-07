@@ -107,7 +107,7 @@ function Addon:RecordCatch(mapID, area, itemID, name, quantity)
     wipe(placesCache)
 end
 
----Forgets every character's catches and sessions.
+---Forgets every character's catches and sessions, and the times of day and seasons they bit in.
 function Addon:ClearLog()
     local global = self.db.global
     wipe(global.chars)
@@ -115,6 +115,7 @@ function Addon:ClearLog()
     wipe(global.items)
     self.session = nil
     wipe(placesCache)
+    self:ClearTimes()
 end
 
 -- PlaceCounts' working tables, reused on every call: item ID -> count, the row tables, and the

@@ -17,6 +17,12 @@
 ---@field PlaceName fun(mapID: number, area: AddonArea): string
 ---@field NewBarWindow fun(key: string, name: string, color: number[]): AddonWindow
 ---@field catchWindow AddonWindow
+---@field daytimes { day: string, night: string }
+---@field SEASON_ORDER string[]
+---@field SeasonOf fun(month: number): string
+---@field NoteTime fun(self: Addon, itemID: number, quantity: number)
+---@field ClearTimes fun(self: Addon)
+---@field TimeNotes fun(self: Addon, itemID: number): (string?, string?)
 ---@field windows AddonWindow[] every bar window, in the order made
 ---@field DEFAULTS table the AceDB defaults (Core\Addon.lua)
 ---@field outlines table<string, string> outline choice -> SetFont flag: outlines.thin is "OUTLINE"
@@ -124,6 +130,11 @@
 ---@field sessions AddonSession[] oldest first
 ---@field items table<number, string> item names as caught, for items the client has not loaded
 ---@field dev? AddonDevData Core\Dev.lua's, in a copy from the repository
+---@field times table<number, AddonTimes> per item ID (0: every catch), by time of day and season
+
+---Catches by time of day (day, night) and by season (winter, spring, summer, autumn).
+---@class AddonTimes
+---@field [string] number
 
 ---The development screenshots' switch and what has been shot (Core\Dev.lua).
 ---@class AddonDevData

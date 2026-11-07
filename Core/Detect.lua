@@ -33,8 +33,9 @@ function Addon:UpdateFishing(event, slot)
     self:UpdateCatchWindow()
 end
 
----LOOT_OPENED: every item of a fishing loot window is logged where the player stands. Money and
----anything the client hides are skipped.
+---LOOT_OPENED: every item of a fishing loot window is logged where the player stands, with its
+---time of day and season, before other addons and the window hear of it. Money and anything the
+---client hides are skipped.
 function Addon:OnLootOpened()
     if not IsFishingLoot() then return end
     local mapID, area = Addon.CurrentPlace()
@@ -47,6 +48,7 @@ function Addon:OnLootOpened()
                 local _, name, quantity = GetLootSlotInfo(slot)
                 quantity = Addon.Readable(quantity) and quantity or 1
                 self:RecordCatch(mapID, area, itemID, Addon.Readable(name) and name or nil, quantity)
+                self:NoteTime(itemID, quantity)
                 self:SendMessage(self.messages.catch, itemID, quantity, mapID, area)
             end
         end

@@ -134,6 +134,16 @@ function NewClient(opts)
     function GetServerTime()
         return client.serverTime
     end
+    -- The server's time of day (client.hour, client.minute) and date (client.month).
+    client.hour, client.minute, client.month = 12, 0, 11
+    function GetGameTime()
+        return client.hour, client.minute
+    end
+    C_DateAndTime = {
+        GetCurrentCalendarTime = function()
+            return { year = 2026, month = client.month, monthDay = 7, weekday = 7, hour = client.hour, minute = 0 }
+        end,
+    }
     -- client.screenshots: how many screenshots were taken.
     client.screenshots = 0
     function Screenshot()

@@ -1,7 +1,8 @@
 local _, ns = ...
 
 -- The item tooltip: under an item any character has caught, where, best share first ("Crystal
--- Lake, Elwynn Forest   45% (21)": 45% of what was caught there was this item, 21 of them).
+-- Lake, Elwynn Forest   45% (21)": 45% of what was caught there was this item, 21 of them), then
+-- when it seems to bite only by day, at night or in some seasons (Core\Times.lua).
 
 ---@type Addon
 local Addon = ns
@@ -27,6 +28,9 @@ function Addon:AddItemPlaces(tooltip, data)
         tooltip:AddDoubleLine(Addon.PlaceName(place.mapID, place.area), share, 1, 1, 1, 1, 1, 1)
     end
     if #places > limit then tooltip:AddLine(L.TOOLTIP_MORE:format(#places - limit), 0.6, 0.6, 0.6) end
+    local daytime, season = self:TimeNotes(itemID --[[@as number]])
+    if daytime then tooltip:AddLine(daytime, 0.6, 0.8, 1) end
+    if season then tooltip:AddLine(season, 0.6, 0.8, 1) end
 end
 
 ---Hooks the item tooltips; a client without TooltipDataProcessor gets none.

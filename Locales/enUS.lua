@@ -54,6 +54,17 @@ L.QUALITY_COLORS_DESC = "Poor items grey, uncommon green, rare blue."
 
 -- The item tooltip: above the places an item was caught.
 L.TOOLTIP_TITLE = "Caught at"
+-- The item tooltip, under the places: when the item seems to bite (server time; day is 6 to 18).
+L.ONLY_DAY = "Only by day"
+L.ONLY_NIGHT = "Only at night"
+-- The seasons the item bit in: "Only in winter and spring".
+L.ONLY_IN = "Only in %s"
+-- Joins the last of a list: "winter, spring" and "summer".
+L.AND = "%s and %s"
+L.SEASON_WINTER = "winter"
+L.SEASON_SPRING = "spring"
+L.SEASON_SUMMER = "summer"
+L.SEASON_AUTUMN = "autumn"
 -- The item tooltip, right of a place: the item's share there, then how many ("45% (21)").
 L.TOOLTIP_SHARE = "%s (%d)"
 -- The item tooltip when not every place fits: how many were left out.
