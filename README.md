@@ -9,7 +9,7 @@ character and per fishing session.
   catches it counts: this **session**, this **character**, **all** your characters, or all of
   them plus your **guild**.
 - **New here!** The first catch of an item at a place, over your whole account, says so in chat
-  and is marked "new" in the window until you leave.
+  and is marked "new" in the window, in front of its numbers, until you leave.
 - **Item tooltip.** An item you caught shows where: "Crystal Lake, Elwynn Forest 45% (21)"
   means 45% of what was caught there was this item, 21 of them. Best spots first. Then its
   biggest stack, and when it seems to bite: "Only at night", "Only in winter and spring".

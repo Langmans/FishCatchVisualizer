@@ -16,12 +16,14 @@ local L = Addon.L
 local LEM = LibStub("LibEditMode")
 
 local WIDTH, PAD = 260, 8
-local ROW_HEIGHT, ROW_GAP = 16, 2
--- From the top edge to the first bar: title, subtitle and the buttons.
-local HEADER = 52
-local NOTE_HEIGHT = 14
+-- The header: the title's distance from the top edge, and the gaps under the title, the subtitle
+-- and the buttons. Its height follows the font size (Window:Measure).
+local TOP, TITLE_GAP, SUBTITLE_GAP, BUTTON_GAP = 6, 2, 4, 4
+local MIN_ROW_HEIGHT, ROW_GAP = 16, 2
+-- A line of text is about a quarter higher than its font size.
+local LINE_HEIGHT = 1.25
 -- A button is as wide as its label plus this, so a bigger font never cuts a label off.
-local BUTTON_PAD, BUTTON_HEIGHT = 8, 14
+local BUTTON_PAD = 8
 local BACKDROP = { bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 }
 -- A window's place and look in a layout it has not been touched in.
 ---@type AddonWindowLook
@@ -159,19 +161,46 @@ end
 ---@param appearance AddonAppearance
 function Window:ApplyAppearance(appearance)
     self.appearance = appearance
+    self:Measure(appearance.size)
     self:StyleText(self.title, TITLE_LARGER, "titleColor")
     self:StyleText(self.subtitle, nil, "textColor")
     self:StyleText(self.empty, nil, "textColor")
     self:StyleText(self.more, nil, "textColor")
     for _, button in pairs(self.buttons) do
         self:StyleText(button.label)
-        button:SetWidth(button.label:GetStringWidth() + BUTTON_PAD)
+        button:SetSize(button.label:GetStringWidth() + BUTTON_PAD, self.lineHeight)
     end
-    for _, row in ipairs(self.rows) do
+    for i, row in ipairs(self.rows) do
         self:StyleText(row.left, nil, "textColor")
         self:StyleText(row.right, nil, "textColor")
+        self:PlaceRow(i, row.bar)
         self:StyleBar(row)
     end
+end
+
+---The height of a line of text of `size` points.
+---@param size number
+---@return number
+local function Line(size)
+    return math.ceil(size * LINE_HEIGHT)
+end
+
+---Sizes a line, the rows and the header (title, subtitle and buttons) for text of `size` points.
+---@param size number
+function Window:Measure(size)
+    local line = Line(size)
+    self.lineHeight, self.rowHeight = line, math.max(MIN_ROW_HEIGHT, line)
+    self.header = TOP + Line(size + TITLE_LARGER) + TITLE_GAP + line + SUBTITLE_GAP + line + BUTTON_GAP
+end
+
+---Puts row i's bar under the header and the rows before it.
+---@param i number
+---@param bar StatusBar
+function Window:PlaceRow(i, bar)
+    bar:SetHeight(self.rowHeight)
+    bar:ClearAllPoints()
+    bar:SetPoint("TOPLEFT", self.frame, "TOPLEFT", PAD, -(self.header + (i - 1) * (self.rowHeight + ROW_GAP)))
+    bar:SetPoint("RIGHT", self.frame, "RIGHT", -PAD, 0)
 end
 
 ---A colour from red through yellow to `color` as `share` goes from 0 to 1, as ElvUI's Health By
@@ -236,14 +265,14 @@ function Window:AddButton(key, label, onClick)
     text:SetAllPoints()
     text:SetText(label)
     self:StyleText(text)
-    button:SetSize(text:GetStringWidth() + BUTTON_PAD, BUTTON_HEIGHT)
+    button:SetSize(text:GetStringWidth() + BUTTON_PAD, self.lineHeight)
     button.label = text
     button:SetScript("OnClick", onClick)
     local previous = self.buttons[self.lastButton]
     if previous then
         button:SetPoint("LEFT", previous, "RIGHT", 4, 0)
     else
-        button:SetPoint("TOPLEFT", self.subtitle, "BOTTOMLEFT", 0, -4)
+        button:SetPoint("TOPLEFT", self.subtitle, "BOTTOMLEFT", 0, -SUBTITLE_GAP)
     end
     self.buttons[key], self.lastButton = button, key
 end
@@ -280,11 +309,11 @@ function Window:FillRow(i, left, right, value)
     if not row then
         local bar = CreateFrame("StatusBar", nil, self.frame)
         bar:SetMinMaxValues(0, 1)
-        bar:SetHeight(ROW_HEIGHT)
-        bar:SetPoint("TOPLEFT", PAD, -(HEADER + (i - 1) * (ROW_HEIGHT + ROW_GAP)))
-        bar:SetPoint("RIGHT", -PAD, 0)
+        self:PlaceRow(i, bar)
         local background = bar:CreateTexture(nil, "BACKGROUND")
+        -- A long name is cut short rather than wrapped onto the next row.
         local leftText = Text(bar, "GameFontHighlightSmall")
+        leftText:SetWordWrap(false)
         leftText:SetPoint("LEFT", 4, 0)
         local rightText = Text(bar, "GameFontHighlightSmall")
         rightText:SetPoint("RIGHT", -4, 0)
@@ -325,10 +354,10 @@ function Window:ShowRows(count, empty, more)
     for i, row in ipairs(self.rows) do
         row.bar:SetShown(i <= count)
     end
-    local height = HEADER + count * (ROW_HEIGHT + ROW_GAP)
+    local height = self.header + count * (self.rowHeight + ROW_GAP)
     ShowNote(self.empty, empty, -height)
     ShowNote(self.more, more, -height)
-    local notes = (empty or more) and NOTE_HEIGHT or 0
+    local notes = (empty or more) and self.lineHeight or 0
     self.frame:SetHeight(height + notes + PAD)
 end
 
@@ -340,18 +369,20 @@ end
 function Addon.NewBarWindow(key, name)
     local frameName = Addon.Global(key:sub(1, 1):upper() .. key:sub(2) .. "Window")
     local frame = CreateFrame("Frame", frameName, UIParent, "BackdropTemplate")
-    frame:SetSize(WIDTH, HEADER + PAD)
     frame:SetFrameStrata("MEDIUM")
     frame:SetClampedToScreen(true)
     frame:SetBackdrop(BACKDROP)
     frame:EnableMouse(false)
     frame:Hide()
     local window = setmetatable({ key = key, frame = frame, rows = {}, buttons = {} }, Window) --[[@as AddonWindow]]
+    -- Until the appearance arrives: the default font size.
+    window:Measure(Addon.DEFAULTS.profile.fontSize)
+    frame:SetSize(WIDTH, window.header + PAD)
     window.title = Text(frame, "GameFontNormal")
-    window.title:SetPoint("TOPLEFT", PAD, -6)
+    window.title:SetPoint("TOPLEFT", PAD, -TOP)
     window.title:SetPoint("RIGHT", -PAD, 0)
     window.subtitle = Text(frame, "GameFontDisableSmall")
-    window.subtitle:SetPoint("TOPLEFT", window.title, "BOTTOMLEFT", 0, -2)
+    window.subtitle:SetPoint("TOPLEFT", window.title, "BOTTOMLEFT", 0, -TITLE_GAP)
     window.empty = Text(frame, "GameFontDisableSmall")
     window.empty:Hide()
     window.more = Text(frame, "GameFontDisableSmall")

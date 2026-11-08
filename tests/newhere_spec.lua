@@ -7,10 +7,10 @@ local function fishing(opts)
     return NewClient(opts):login():equip(ITEMS.pole)
 end
 
----The left text of the window's row for an item, or nil.
+---The right text (the new mark and the numbers) of the window's row for an item, or nil.
 local function row(client, name)
     for _, r in ipairs(client.Addon.catchWindow.rows) do
-        if r.bar:IsShown() and r.left.text:find(name, 1, true) then return r.left.text end
+        if r.bar:IsShown() and r.left.text:find(name, 1, true) then return r.right.text end
     end
 end
 

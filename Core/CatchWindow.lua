@@ -19,15 +19,15 @@ for _, view in ipairs(Addon.VIEW_ORDER) do
     end)
 end
 
--- The "new" mark after an item first caught at the place: green.
-local NEW_MARK = " |cff33ff33" .. L.NEW .. "|r"
+-- The "new" mark before the numbers of an item first caught at the place: green. With the numbers
+-- it stays in sight when a long name is cut short.
+local NEW_MARK = "|cff33ff33" .. L.NEW .. "|r "
 
 ---An item's icon and name: the client's name, or the one saved when it was caught; in its quality's
----colour when the profile asks for it and the client knows the quality; marked when new here.
+---colour when the profile asks for it and the client knows the quality.
 ---@param itemID number
----@param isNew boolean
 ---@return string
-local function ItemLabel(itemID, isNew)
+local function ItemLabel(itemID)
     local name = C_Item.GetItemNameByID(itemID) or Addon.db.global.items[itemID] or ("item:" .. itemID)
     if Addon.db.profile.qualityColors then
         local quality = C_Item.GetItemQualityByID(itemID)
@@ -35,7 +35,7 @@ local function ItemLabel(itemID, isNew)
         local color = quality and ITEM_QUALITY_COLORS[quality]
         if color then name = color.hex .. name .. "|r" end
     end
-    return ("|T%s:14:14|t %s%s"):format(C_Item.GetItemIconByID(itemID) or UNKNOWN_ICON, name, isNew and NEW_MARK or "")
+    return ("|T%s:14:14|t %s"):format(C_Item.GetItemIconByID(itemID) or UNKNOWN_ICON, name)
 end
 
 ---Whose catches the window counts.
@@ -79,8 +79,9 @@ function Addon:UpdateCatchWindow()
     for i = 1, count do
         local row = rows[i]
         local share = row.count / total
-        local label = ItemLabel(row.itemID, self:IsNewHere(row.itemID))
-        window:FillRow(i, label, L.ROW_COUNT:format(row.count, Addon.Percent(share)), share)
+        local numbers = L.ROW_COUNT:format(row.count, Addon.Percent(share))
+        if self:IsNewHere(row.itemID) then numbers = NEW_MARK .. numbers end
+        window:FillRow(i, ItemLabel(row.itemID), numbers, share)
     end
     window:ShowRows(count, n == 0 and L.NOTHING_HERE or nil, n > count and L.MORE:format(n - count) or nil)
 end

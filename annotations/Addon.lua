@@ -249,6 +249,9 @@
 ---@field key string its key in the saved layouts
 ---@field frame BackdropTemplate|Frame
 ---@field topValue? number the first row's value, the most caught's share
+---@field lineHeight number a line of text at the font size, also a button's height
+---@field rowHeight number
+---@field header number from the top edge to the first bar
 ---@field title FontString
 ---@field subtitle FontString
 ---@field empty FontString the note when there is nothing

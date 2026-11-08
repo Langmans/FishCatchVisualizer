@@ -614,6 +614,9 @@ function NewClient(opts)
     function Region:SetShadowColor(r, g, b, a)
         self.shadowColor = { r, g, b, a }
     end
+    function Region:SetWordWrap(on)
+        self.wordWrap = on
+    end
 
     -- The item quality colours as the client has them (ColorUtil), for poor and common.
     ITEM_QUALITY_COLORS = {
